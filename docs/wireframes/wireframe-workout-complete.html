@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Complete - Fit Track</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f39c12;
+            animation: confetti-fall 3s linear infinite;
+        }
+        .confetti:nth-child(2) { left: 20%; animation-delay: 0.2s; background: #3498db; }
+        .confetti:nth-child(3) { left: 40%; animation-delay: 0.4s; background: #e74c3c; }
+        .confetti:nth-child(4) { left: 60%; animation-delay: 0.6s; background: #2ecc71; }
+        .confetti:nth-child(5) { left: 80%; animation-delay: 0.8s; background: #9b59b6; }
+
+        @keyframes pulse-scale {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .pulse-animation {
+            animation: pulse-scale 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .bounce-animation {
+            animation: bounce 1s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Confetti Effect -->
+    <div class="confetti" style="left: 10%;"></div>
+    <div class="confetti" style="left: 30%;"></div>
+    <div class="confetti" style="left: 50%;"></div>
+    <div class="confetti" style="left: 70%;"></div>
+    <div class="confetti" style="left: 90%;"></div>
+
+    <!-- Main Container -->
+    <div class="min-h-screen pb-20">
+        <!-- Header with celebration -->
+        <div class="bg-gradient-to-br from-purple-600 via-pink-600 to-purple-700 text-white px-4 py-8">
+            <div class="text-center">
+                <div class="text-6xl mb-4">🎉</div>
+                <h1 class="text-3xl font-black mb-2">WORKOUT COMPLETE!</h1>
+                <p class="text-lg font-semibold opacity-90">Absolutely crushed it! 💪</p>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="px-4 py-6">
+            <!-- XP Progress -->
+            <div class="bg-white border-2 border-purple-300 rounded-2xl p-5 mb-6 shadow-lg">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-600 mb-1">LEVEL 12</p>
+                        <p class="text-2xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                            +450 XP
+                        </p>
+                    </div>
+                    <div class="text-5xl">⚡</div>
+                </div>
+                <div class="relative">
+                    <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-1000" style="width: 73%"></div>
+                    </div>
+                    <p class="text-xs font-semibold text-gray-600 mt-1">2,190 / 3,000 XP to Level 13</p>
+                </div>
+            </div>
+
+            <!-- Key Stats Grid -->
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="bg-white border border-gray-200 rounded-xl p-4">
+                    <p class="text-xs font-semibold text-gray-600 mb-1">Duration</p>
+                    <p class="text-2xl font-black text-gray-900">52 min</p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-xl p-4">
+                    <p class="text-xs font-semibold text-gray-600 mb-1">Total Volume</p>
+                    <p class="text-2xl font-black text-gray-900">8,340 lbs</p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-xl p-4">
+                    <p class="text-xs font-semibold text-gray-600 mb-1">Personal Records</p>
+                    <p class="text-2xl font-black text-purple-600">2 PRs! 🎯</p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-xl p-4">
+                    <p class="text-xs font-semibold text-gray-600 mb-1">Completion</p>
+                    <p class="text-2xl font-black text-green-600">100%</p>
+                </div>
+            </div>
+
+            <!-- PR Highlights -->
+            <div class="mb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-3">Personal Records 🏆</h2>
+                
+                <!-- PR 1 -->
+                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-xl p-4 mb-3">
+                    <div class="flex items-start justify-between mb-2">
+                        <div>
+                            <h3 class="font-bold text-gray-900">Bench Press</h3>
+                            <p class="text-xs text-gray-600">Weight PR</p>
+                        </div>
+                        <span class="text-3xl">🏆</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1">
+                            <p class="text-xs text-gray-600 mb-1">Previous</p>
+                            <p class="text-lg font-bold text-gray-700">230 lbs × 8</p>
+                        </div>
+                        <div class="text-2xl">→</div>
+                        <div class="flex-1">
+                            <p class="text-xs text-gray-600 mb-1">New PR!</p>
+                            <p class="text-lg font-bold text-orange-600">235 lbs × 8</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PR 2 -->
+                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-xl p-4">
+                    <div class="flex items-start justify-between mb-2">
+                        <div>
+                            <h3 class="font-bold text-gray-900">Overhead Press</h3>
+                            <p class="text-xs text-gray-600">Weight PR</p>
+                        </div>
+                        <span class="text-3xl">🏆</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1">
+                            <p class="text-xs text-gray-600 mb-1">Previous</p>
+                            <p class="text-lg font-bold text-gray-700">130 lbs × 8</p>
+                        </div>
+                        <div class="text-2xl">→</div>
+                        <div class="flex-1">
+                            <p class="text-xs text-gray-600 mb-1">New PR!</p>
+                            <p class="text-lg font-bold text-orange-600">135 lbs × 8</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Streak Card -->
+            <div class="bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-2xl p-6 mb-6 shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-semibold mb-1 opacity-90">Current Streak</p>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-5xl font-black">14</span>
+                            <span class="text-2xl font-bold opacity-80">Days</span>
+                        </div>
+                    </div>
+                    <div class="text-6xl pulse-animation">🔥</div>
+                </div>
+                <div class="mt-4 flex items-center gap-1">
+                    <div class="w-2 h-2 bg-white rounded-full"></div>
+                    <div class="w-2 h-2 bg-white rounded-full"></div>
+                    <div class="w-2 h-2 bg-white rounded-full"></div>
+                    <div class="w-2 h-2 bg-white rounded-full"></div>
+                    <div class="w-2 h-2 bg-white rounded-full"></div>
+                    <div class="w-2 h-2 bg-white rounded-full"></div>
+                    <div class="w-2 h-2 bg-white rounded-full"></div>
+                    <div class="flex-1 h-0.5 bg-white/30"></div>
+                    <span class="text-xs font-semibold">🎯 Goal: 30 days</span>
+                </div>
+            </div>
+
+            <!-- Achievement Unlocked -->
+            <div class="bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-300 rounded-2xl p-6 mb-6">
+                <div class="flex items-center gap-4 mb-3">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-3xl shadow-lg bounce-animation">
+                        🏅
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-purple-900">Achievement Unlocked!</p>
+                        <h3 class="text-xl font-black text-purple-900">Two Week Warrior</h3>
+                    </div>
+                </div>
+                <p class="text-sm text-purple-800">Complete 14 consecutive workout days. Keep the momentum going!</p>
+                <div class="mt-3 flex items-center gap-2">
+                    <div class="flex-1 bg-purple-200 rounded-full h-2 overflow-hidden">
+                        <div class="bg-purple-600 h-full" style="width: 47%"></div>
+                    </div>
+                    <span class="text-xs font-bold text-purple-900">14/30</span>
+                </div>
+                <p class="text-xs text-purple-700 mt-1">Next: "Monthly Grinder" achievement</p>
+            </div>
+
+            <!-- Workout Breakdown -->
+            <div class="mb-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-3">Workout Summary</h2>
+                <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-200">
+                    <!-- Exercise 1 -->
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-semibold text-gray-900">Bench Press</h3>
+                            <span class="text-yellow-500 text-lg">🏆</span>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <div class="flex justify-between mb-1">
+                                <span>Set 1 (Warm-up)</span>
+                                <span class="font-semibold">135 lbs × 10</span>
+                            </div>
+                            <div class="flex justify-between mb-1">
+                                <span>Set 2 (Warm-up)</span>
+                                <span class="font-semibold">185 lbs × 8</span>
+                            </div>
+                            <div class="flex justify-between mb-1">
+                                <span>Set 3 (Working)</span>
+                                <span class="font-semibold text-green-600">235 lbs × 8 ✓</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Set 4 (Working)</span>
+                                <span class="font-semibold text-green-600">235 lbs × 6 ✓</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Exercise 2 -->
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-semibold text-gray-900">Overhead Press</h3>
+                            <span class="text-yellow-500 text-lg">🏆</span>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <div class="flex justify-between mb-1">
+                                <span>Set 1 (Warm-up)</span>
+                                <span class="font-semibold">95 lbs × 10</span>
+                            </div>
+                            <div class="flex justify-between mb-1">
+                                <span>Set 2 (Working)</span>
+                                <span class="font-semibold text-green-600">135 lbs × 8 ✓</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Set 3 (Working)</span>
+                                <span class="font-semibold text-green-600">135 lbs × 6 ✓</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Exercise 3 -->
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-semibold text-gray-900">Tricep Dips</h3>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <div class="flex justify-between mb-1">
+                                <span>Set 1 (Working)</span>
+                                <span class="font-semibold text-green-600">BW + 25 lbs × 12 ✓</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Set 2 (Working)</span>
+                                <span class="font-semibold text-green-600">BW + 25 lbs × 10 ✓</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Workout Preview -->
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-bold text-blue-900">Next Workout</h3>
+                    <span class="text-xs font-semibold text-blue-700">Tomorrow</span>
+                </div>
+                <p class="text-sm text-blue-800 mb-3">Leg Day • 4 exercises • ~50 min</p>
+                <button class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition">
+                    View Workout Plan
+                </button>
+            </div>
+
+            <!-- Share Button -->
+            <button class="w-full border-2 border-purple-300 text-purple-700 font-semibold py-3 rounded-lg hover:bg-purple-50 transition mb-20">
+                Share Progress 📤
+            </button>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-around">
+            <a href="wireframe-home-dashboard.html" class="flex flex-col items-center gap-1 text-gray-400 hover:text-purple-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span class="text-xs font-medium">Home</span>
+            </a>
+            <a href="wireframe-progress-dashboard.html" class="flex flex-col items-center gap-1 text-gray-400 hover:text-purple-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span class="text-xs font-medium">Progress</span>
+            </a>
+            <a href="wireframe-workout-library.html" class="flex flex-col items-center gap-1 text-gray-400 hover:text-purple-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <span class="text-xs font-medium">Library</span>
+            </a>
+            <a href="wireframe-community-hub.html" class="flex flex-col items-center gap-1 text-gray-400 hover:text-purple-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span class="text-xs font-medium">Community</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

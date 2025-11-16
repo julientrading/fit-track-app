@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progression Ready - Fit Track</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900/50 backdrop-blur-sm flex items-center justify-center min-h-screen p-4">
+    <!-- Modal -->
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-6 rounded-t-2xl">
+            <div class="text-center">
+                <div class="text-6xl mb-3">📈</div>
+                <h1 class="text-2xl font-bold mb-2">Ready to Progress!</h1>
+                <p class="text-sm opacity-90">You've hit your targets consistently. Time to level up! 💪</p>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6">
+            <!-- Exercise Name -->
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Bench Press</h2>
+
+            <!-- Current Performance -->
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
+                <p class="text-xs font-semibold text-gray-600 mb-2">CURRENT PERFORMANCE</p>
+                <div class="text-center mb-3">
+                    <p class="text-3xl font-black text-gray-900 mb-1">70 kg</p>
+                    <p class="text-lg font-semibold text-gray-700">8 reps × 4 sets</p>
+                </div>
+                <div class="space-y-1 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Last 2 workouts:</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-600 font-bold">8 reps ✓</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-600 font-bold">8 reps ✓</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Threshold Met -->
+            <div class="bg-green-50 border-2 border-green-300 rounded-xl p-4 mb-6">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">✅</span>
+                    <h3 class="font-bold text-green-900">Progression Threshold Met!</h3>
+                </div>
+                <p class="text-sm text-green-800">You've achieved target reps for 2 consecutive workouts</p>
+            </div>
+
+            <!-- Progression Options -->
+            <div class="mb-6">
+                <h3 class="font-bold text-gray-900 mb-3">How would you like to progress?</h3>
+
+                <!-- INCREASE WEIGHT -->
+                <div class="mb-4">
+                    <p class="text-sm font-bold text-gray-700 mb-2">INCREASE WEIGHT:</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="border-2 border-gray-300 hover:border-purple-500 hover:bg-purple-50 rounded-lg p-3 transition">
+                            <p class="font-bold text-purple-600">+1 kg</p>
+                            <p class="text-xs text-gray-600">Small Step</p>
+                        </button>
+                        <button class="border-2 border-gray-300 hover:border-purple-500 hover:bg-purple-50 rounded-lg p-3 transition">
+                            <p class="font-bold text-purple-600">+1.5 kg</p>
+                            <p class="text-xs text-gray-600">Moderate</p>
+                        </button>
+                        <button class="border-2 border-gray-300 hover:border-purple-500 hover:bg-purple-50 rounded-lg p-3 transition">
+                            <p class="font-bold text-purple-600">+2 kg</p>
+                            <p class="text-xs text-gray-600">Standard</p>
+                        </button>
+                        <button class="border-2 border-gray-300 hover:border-purple-500 hover:bg-purple-50 rounded-lg p-3 transition">
+                            <p class="font-bold text-purple-600">+2.5 kg</p>
+                            <p class="text-xs text-gray-600">Aggressive</p>
+                        </button>
+                    </div>
+                </div>
+
+                <p class="text-center text-gray-500 font-semibold mb-4">OR</p>
+
+                <!-- INCREASE REPS -->
+                <div class="mb-4">
+                    <p class="text-sm font-bold text-gray-700 mb-2">INCREASE REPS:</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 rounded-lg p-3 transition">
+                            <p class="font-bold text-blue-600">+1 rep</p>
+                            <p class="text-xs text-gray-600">9 reps</p>
+                        </button>
+                        <button class="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 rounded-lg p-3 transition">
+                            <p class="font-bold text-blue-600">+2 reps</p>
+                            <p class="text-xs text-gray-600">10 reps</p>
+                        </button>
+                        <button class="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 rounded-lg p-3 transition">
+                            <p class="font-bold text-blue-600">+3 reps</p>
+                            <p class="text-xs text-gray-600">11 reps</p>
+                        </button>
+                    </div>
+                </div>
+
+                <p class="text-center text-gray-500 font-semibold mb-4">OR</p>
+
+                <!-- INCREASE VOLUME -->
+                <div class="mb-4">
+                    <p class="text-sm font-bold text-gray-700 mb-2">INCREASE VOLUME:</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="border-2 border-gray-300 hover:border-orange-500 hover:bg-orange-50 rounded-lg p-3 transition">
+                            <p class="font-bold text-orange-600">+1 set</p>
+                            <p class="text-xs text-gray-600">5 total sets</p>
+                        </button>
+                        <button class="border-2 border-gray-300 hover:border-orange-500 hover:bg-orange-50 rounded-lg p-3 transition">
+                            <p class="font-bold text-orange-600">+2 sets</p>
+                            <p class="text-xs text-gray-600">6 total sets</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Keep Current -->
+                <button class="w-full border-2 border-gray-300 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-50 transition">
+                    Keep Current Weight & Reps
+                </button>
+            </div>
+
+            <!-- Progression Tip -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div class="flex items-start gap-2">
+                    <span class="text-lg">💡</span>
+                    <div>
+                        <p class="font-bold text-blue-900 text-sm mb-1">Progression Tip</p>
+                        <p class="text-xs text-blue-800">For strength building, increasing weight by 1-2kg is recommended. For hypertrophy, adding reps (up to 12) works well. Choose what feels right based on your recent workouts.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="border-t border-gray-200 p-4">
+            <button class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 rounded-lg hover:shadow-lg transition">
+                Apply Changes ✓
+            </button>
+        </div>
+    </div>
+</body>
+</html>

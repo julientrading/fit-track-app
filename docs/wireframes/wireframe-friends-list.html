@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends List - Fit Track</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'text-white');
+                btn.classList.add('bg-gray-100', 'text-gray-700');
+            });
+            document.getElementById(tabName).classList.remove('hidden');
+            event.target.classList.remove('bg-gray-100', 'text-gray-700');
+            event.target.classList.add('bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'text-white');
+        }
+
+        function toggleInviteModal() {
+            document.getElementById('inviteModal').classList.toggle('hidden');
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-4">
+        <div class="flex items-center gap-3">
+            <a href="wireframe-community-hub.html" class="hover:bg-white/20 rounded-full p-2 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <h1 class="text-2xl font-bold flex-1">👥 Friends</h1>
+            <button onclick="toggleInviteModal()" class="bg-white/20 hover:bg-white/30 rounded-lg px-4 py-2 font-semibold text-sm transition">
+                + Invite
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="bg-white border-b-2 border-gray-200 px-4 py-3">
+        <div class="grid grid-cols-2 gap-2">
+            <button onclick="switchTab('activity')" class="tab-button bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-2 rounded-lg text-sm transition">
+                Activity Feed
+            </button>
+            <button onclick="switchTab('friends')" class="tab-button bg-gray-100 text-gray-700 font-semibold py-2 rounded-lg text-sm hover:bg-gray-200 transition">
+                All Friends (8)
+            </button>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="pb-24 px-4 py-6">
+        <!-- Activity Feed Tab -->
+        <div id="activity" class="tab-content">
+            <div class="mb-4 bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+                <p class="text-sm text-purple-900">
+                    <span class="font-bold">📅 Last 24 Hours</span><br>
+                    <span class="text-xs">Real-time updates from your network</span>
+                </p>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Activity 1 - PR Achievement -->
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                            S
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="font-bold text-gray-900">Sarah</h3>
+                                <span class="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full font-bold">PR! 🎉</span>
+                            </div>
+                            <p class="text-sm text-gray-700 mb-2">Achieved new PR on <span class="font-semibold">Muscle-Up Progression</span></p>
+                            <div class="bg-white rounded-lg p-2 mb-2">
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-500">Previous PR:</span>
+                                    <span class="font-semibold text-gray-700">5 reps</span>
+                                </div>
+                                <div class="flex justify-between text-xs mt-1">
+                                    <span class="text-gray-500">New PR:</span>
+                                    <span class="font-bold text-green-600">7 reps 🎯</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3 text-xs text-gray-600">
+                                    <span>⚡ +35 XP</span>
+                                    <span>•</span>
+                                    <span>5 min ago</span>
+                                </div>
+                                <button class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1.5 rounded-lg font-semibold text-sm hover:shadow-lg transition">
+                                    Cheer! 👍
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity 2 - Workout Complete -->
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                            M
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="font-bold text-gray-900">Mike</h3>
+                            </div>
+                            <p class="text-sm text-gray-700 mb-2">Completed <span class="font-semibold text-orange-600">Push Day</span> workout</p>
+                            <div class="bg-gray-50 rounded-lg p-2 mb-2">
+                                <div class="grid grid-cols-3 gap-2 text-xs">
+                                    <div class="text-center">
+                                        <div class="text-gray-500">Duration</div>
+                                        <div class="font-bold text-gray-900">52 min</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-gray-500">Exercises</div>
+                                        <div class="font-bold text-gray-900">5</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-gray-500">Volume</div>
+                                        <div class="font-bold text-gray-900">8.4k lbs</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3 text-xs text-gray-600">
+                                    <span>⚡ +110 XP</span>
+                                    <span>•</span>
+                                    <span>23 min ago</span>
+                                </div>
+                                <button class="border-2 border-purple-300 text-purple-600 px-4 py-1.5 rounded-lg font-semibold text-sm hover:bg-purple-50 transition">
+                                    Cheer! 👍
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity 3 - Streak -->
+                <div class="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                            A
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="font-bold text-gray-900">Alex K.</h3>
+                                <span class="text-xs bg-orange-400 text-orange-900 px-2 py-0.5 rounded-full font-bold">🔥 Streak</span>
+                            </div>
+                            <p class="text-sm text-gray-700 mb-2">Achieved <span class="font-bold text-orange-600">7-day workout streak!</span></p>
+                            <div class="bg-white rounded-lg p-2 mb-2 flex items-center justify-center gap-2">
+                                <div class="text-5xl">🔥</div>
+                                <div>
+                                    <div class="text-2xl font-black text-orange-600">7 Days</div>
+                                    <div class="text-xs text-gray-500">On fire!</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3 text-xs text-gray-600">
+                                    <span>⚡ +75 XP bonus</span>
+                                    <span>•</span>
+                                    <span>1 hour ago</span>
+                                </div>
+                                <button class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1.5 rounded-lg font-semibold text-sm hover:shadow-lg transition">
+                                    Cheer! 👍
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Friends Tab -->
+        <div id="friends" class="tab-content hidden">
+            <div class="space-y-3">
+                <!-- Friend 1 -->
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                            S
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-gray-900">Sarah Johnson</h3>
+                            <div class="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                                <span>🔥 21 day streak</span>
+                                <span>•</span>
+                                <span>Level 15</span>
+                            </div>
+                        </div>
+                        <button class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transition">
+                            Message
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Friend 2 -->
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-14 h-14 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                            M
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-gray-900">Mike Chen</h3>
+                            <div class="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                                <span>🔥 18 day streak</span>
+                                <span>•</span>
+                                <span>Level 13</span>
+                            </div>
+                        </div>
+                        <button class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transition">
+                            Message
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Friend 3 -->
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-14 h-14 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                            A
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-gray-900">Alex K.</h3>
+                            <div class="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                                <span>🔥 7 day streak</span>
+                                <span>•</span>
+                                <span>Level 8</span>
+                            </div>
+                        </div>
+                        <button class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transition">
+                            Message
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invite Modal -->
+    <div id="inviteModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-bold text-gray-900">Invite Friends</h2>
+                <button onclick="toggleInviteModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-4 mb-4">
+                <p class="text-sm text-purple-900">
+                    <span class="font-bold">🎁 Earn +50 XP</span> for each friend who joins!
+                </p>
+            </div>
+
+            <div class="bg-white border-2 border-gray-200 rounded-xl p-6 mb-4 flex flex-col items-center">
+                <div class="w-48 h-48 bg-gray-200 rounded-xl flex items-center justify-center mb-3">
+                    <span class="text-gray-500 text-sm">QR Code Placeholder</span>
+                </div>
+                <p class="text-sm text-gray-600 text-center">Scan to download the app</p>
+            </div>
+
+            <input type="text" value="https://fittrack.app/invite/alex123" readonly class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-sm font-mono text-center mb-3">
+            
+            <button class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 rounded-lg hover:shadow-lg transition">
+                Copy Invite Link
+            </button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-around">
+        <a href="wireframe-home-dashboard.html" class="flex flex-col items-center gap-1 text-gray-400 hover:text-purple-600 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <span class="text-xs font-medium">Home</span>
+        </a>
+        <a href="wireframe-progress-dashboard.html" class="flex flex-col items-center gap-1 text-gray-400 hover:text-purple-600 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span class="text-xs font-medium">Progress</span>
+        </a>
+        <a href="wireframe-workout-library.html" class="flex flex-col items-center gap-1 text-gray-400 hover:text-purple-600 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span class="text-xs font-medium">Library</span>
+        </a>
+        <a href="wireframe-community-hub.html" class="flex flex-col items-center gap-1 text-purple-600">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <span class="text-xs font-medium">Community</span>
+        </a>
+    </div>
+</body>
+</html>

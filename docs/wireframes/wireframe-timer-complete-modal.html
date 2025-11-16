@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rest Complete - Fit Track</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900/50 min-h-screen flex items-center justify-center p-4">
+    <!-- Modal -->
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+        <!-- Animated Icon -->
+        <div class="flex justify-center mb-6">
+            <div class="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center animate-pulse">
+                <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-black text-gray-900 mb-2">Rest Complete! 💪</h2>
+            <p class="text-lg text-gray-600">Time to crush the next set!</p>
+        </div>
+
+        <!-- Motivational Message -->
+        <div class="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-6 mb-6">
+            <p class="text-center text-purple-900 font-semibold">
+                "Your muscles are recovered and ready. Let's make this set count!"
+            </p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="bg-gray-50 rounded-2xl p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="text-center flex-1">
+                    <p class="text-sm text-gray-600 mb-1">Next Set</p>
+                    <p class="text-xl font-bold text-purple-600">Set 2/2</p>
+                </div>
+                <div class="w-px h-12 bg-gray-300"></div>
+                <div class="text-center flex-1">
+                    <p class="text-sm text-gray-600 mb-1">Target</p>
+                    <p class="text-xl font-bold text-gray-900">225 lbs × 8</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="space-y-3">
+            <a href="wireframe-workout-execution.html" class="block w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white text-center py-4 rounded-xl font-bold text-lg hover:shadow-lg transition transform hover:scale-105">
+                Let's Go! 🚀
+            </a>
+            <button onclick="alert('Adding 30 more seconds...')" class="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition">
+                +30s More Rest
+            </button>
+        </div>
+    </div>
+
+    <!-- Auto-redirect after 3 seconds (optional) -->
+    <script>
+        // Uncomment to auto-redirect
+        // setTimeout(() => {
+        //     window.location.href = 'wireframe-workout-execution.html';
+        // }, 3000);
+    </script>
+</body>
+</html>

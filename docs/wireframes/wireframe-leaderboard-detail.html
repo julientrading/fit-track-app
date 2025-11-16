@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Fit Track</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'text-white');
+                btn.classList.add('bg-gray-100', 'text-gray-700');
+            });
+            document.getElementById(tabName).classList.remove('hidden');
+            event.target.classList.remove('bg-gray-100', 'text-gray-700');
+            event.target.classList.add('bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'text-white');
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-4">
+        <div class="flex items-center gap-3">
+            <a href="wireframe-community-hub.html" class="hover:bg-white/20 rounded-full p-2 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <h1 class="text-2xl font-bold flex-1">🏆 Leaderboard</h1>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="bg-white border-b-2 border-gray-200 px-4 py-3">
+        <div class="grid grid-cols-4 gap-2">
+            <button onclick="switchTab('weekly')" class="tab-button bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-2 rounded-lg text-xs transition">
+                This Week
+            </button>
+            <button onclick="switchTab('monthly')" class="tab-button bg-gray-100 text-gray-700 font-semibold py-2 rounded-lg text-xs hover:bg-gray-200 transition">
+                Monthly
+            </button>
+            <button onclick="switchTab('alltime')" class="tab-button bg-gray-100 text-gray-700 font-semibold py-2 rounded-lg text-xs hover:bg-gray-200 transition">
+                All-Time
+            </button>
+            <button onclick="switchTab('friends')" class="tab-button bg-gray-100 text-gray-700 font-semibold py-2 rounded-lg text-xs hover:bg-gray-200 transition">
+                Friends
+            </button>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="pb-24 px-4 py-6">
+        <!-- Weekly Tab -->
+        <div id="weekly" class="tab-content">
+            <!-- Podium -->
+            <div class="grid grid-cols-3 gap-2 mb-6">
+                <!-- 2nd Place -->
+                <div class="flex flex-col items-center pt-8">
+                    <div class="text-4xl mb-2">🥈</div>
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mb-2">
+                        M
+                    </div>
+                    <h3 class="font-bold text-gray-900 text-sm">Mike</h3>
+                    <p class="text-xs text-gray-600">1,180 XP</p>
+                </div>
+
+                <!-- 1st Place -->
+                <div class="flex flex-col items-center">
+                    <div class="text-5xl mb-2">🥇</div>
+                    <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-3xl mb-2 ring-4 ring-yellow-300">
+                        S
+                    </div>
+                    <h3 class="font-bold text-gray-900">Sarah</h3>
+                    <p class="text-sm font-bold text-purple-600">1,240 XP</p>
+                </div>
+
+                <!-- 3rd Place -->
+                <div class="flex flex-col items-center pt-12">
+                    <div class="text-3xl mb-2">🥉</div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl mb-2">
+                        A
+                    </div>
+                    <h3 class="font-bold text-gray-900 text-sm">Alex</h3>
+                    <p class="text-xs text-gray-600">1,050 XP</p>
+                </div>
+            </div>
+
+            <!-- Full Rankings -->
+            <div class="bg-white rounded-xl border-2 border-gray-200 overflow-hidden mb-6">
+                <!-- Rank 4 -->
+                <div class="flex items-center gap-3 p-4 border-b border-gray-200">
+                    <div class="text-xl font-bold text-gray-400 w-8">4</div>
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                        J
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-gray-900">Jordan</h3>
+                        <div class="flex items-center gap-2 text-xs text-gray-600">
+                            <span>🔥 5 days</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xl font-black text-purple-600">980</div>
+                        <div class="text-xs text-gray-500">XP</div>
+                    </div>
+                </div>
+
+                <!-- Rank 5 -->
+                <div class="flex items-center gap-3 p-4 border-b border-gray-200">
+                    <div class="text-xl font-bold text-gray-400 w-8">5</div>
+                    <div class="w-10 h-10 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                        K
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-gray-900">Kelly</h3>
+                        <div class="flex items-center gap-2 text-xs text-gray-600">
+                            <span>🔥 12 days</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xl font-black text-purple-600">925</div>
+                        <div class="text-xs text-gray-500">XP</div>
+                    </div>
+                </div>
+
+                <!-- More ranks -->
+                <div class="flex items-center gap-3 p-4 border-b-2 border-dashed border-gray-300">
+                    <div class="text-xl font-bold text-gray-400 w-8">6</div>
+                    <div class="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                        T
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-gray-900">Taylor</h3>
+                        <div class="flex items-center gap-2 text-xs text-gray-600">
+                            <span>🔥 8 days</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xl font-black text-purple-600">895</div>
+                        <div class="text-xs text-gray-500">XP</div>
+                    </div>
+                </div>
+
+                <!-- Your Position -->
+                <div class="flex items-center gap-3 p-4 bg-gradient-to-r from-purple-100 to-pink-100 border-2 border-purple-400">
+                    <div class="text-xl font-bold text-purple-700 w-8">23</div>
+                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                        Y
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-purple-900">You (Alex M.)</h3>
+                        <div class="flex items-center gap-2 text-xs text-purple-700">
+                            <span>🔥 14 days</span>
+                            <span class="text-green-600 font-bold">⬆️ +2</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xl font-black text-purple-700">890</div>
+                        <div class="text-xs text-purple-600">XP</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Motivation Message -->
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                <p class="text-sm text-blue-900">
+                    <span class="font-bold">💪 Keep going!</span> You're only <span class="font-bold text-purple-600">35 XP away</span> from beating Taylor (#22)!
+                </p>
+            </div>
+        </div>
+
+        <!-- Monthly Tab -->
+        <div id="monthly" class="tab-content hidden">
+            <div class="bg-white rounded-xl border-2 border-gray-200 p-6 text-center">
+                <p class="text-gray-500">Monthly leaderboard content would go here...</p>
+            </div>
+        </div>
+
+        <!-- All-Time Tab -->
+        <div id="alltime" class="tab-content hidden">
+            <div class="bg-white rounded-xl border-2 border-gray-200 p-6 text-center">
+                <p class="text-gray-500">All-time leaderboard content would go here...</p>
+            </div>
+        </div>
+
+        <!-- Friends Tab -->
+        <div id="friends" class="tab-content hidden">
+            <div class="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
+                <!-- Friend 1 -->
+                <div class="flex items-center gap-3 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 border-b border-gray-200">
+                    <div class="text-3xl">🥇</div>
+                    <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                        S
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-gray-900">Sarah</h3>
+                        <div class="flex items-center gap-2 text-xs text-gray-600">
+                            <span>🔥 21 days</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xl font-black text-purple-600">1,240</div>
+                        <div class="text-xs text-gray-500">XP</div>
+                    </div>
+                </div>
+
+                <!-- Friend 2 -->
+                <div class="flex items-center gap-3 p-4 border-b border-gray-200">
+                    <div class="text-3xl">🥈</div>
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                        M
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-gray-900">Mike</h3>
+                        <div class="flex items-center gap-2 text-xs text-gray-600">
+                            <span>🔥 18 days</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xl font-black text-purple-600">1,180</div>
+                        <div class="text-xs text-gray-500">XP</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-around">
+        <a href="wireframe-home-dashboard.html" class="flex flex-col items-center gap-1 text-gray-400 hover:text-purple-600 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <span class="text-xs font-medium">Home</span>
+        </a>
+        <a href="wireframe-progress-dashboard.html" class="flex flex-col items-center gap-1 text-gray-400 hover:text-purple-600 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span class="text-xs font-medium">Progress</span>
+        </a>
+        <a href="wireframe-workout-library.html" class="flex flex-col items-center gap-1 text-gray-400 hover:text-purple-600 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span class="text-xs font-medium">Library</span>
+        </a>
+        <a href="wireframe-community-hub.html" class="flex flex-col items-center gap-1 text-purple-600">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <span class="text-xs font-medium">Community</span>
+        </a>
+    </div>
+</body>
+</html>
