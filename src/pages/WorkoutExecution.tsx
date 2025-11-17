@@ -410,7 +410,8 @@ export const WorkoutExecution = () => {
     try {
       // Mark workout as completed
       await completeWorkout(workoutLog.id)
-      navigate(`/workout/${id}/complete`)
+      // Navigate to completion page with workout_log_id (not workout_day_id)
+      navigate(`/workout/${workoutLog.id}/complete`)
     } catch (err) {
       console.error('Failed to complete workout:', err)
       setError(err instanceof Error ? err.message : 'Failed to complete workout')
