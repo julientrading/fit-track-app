@@ -43,7 +43,7 @@ export const RecentActivity = ({ activities, onViewAll }: RecentActivityProps) =
                 +{activity.xp} XP
               </div>
             </div>
-            {activity.achievements.length > 0 && (
+            {activity.achievements && activity.achievements.length > 0 && (
               <div className="flex gap-2 flex-wrap">
                 {activity.achievements.map((achievement, index) => (
                   <span

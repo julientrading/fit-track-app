@@ -118,14 +118,22 @@ export const Home = () => {
 
   // Transform recent workouts for the RecentActivity component
   const recentActivities = recentWorkouts.length > 0
-    ? recentWorkouts.map(workout => ({
-        id: workout.id,
-        type: 'workout' as const,
-        name: workout.name,
-        time: new Date(workout.started_at).toLocaleDateString(),
-        xp: workout.xp_earned,
-        hasAchievement: workout.personal_records_count > 0,
-      }))
+    ? recentWorkouts.map(workout => {
+        const startDate = new Date(workout.started_at)
+        const today = new Date()
+        const daysAgo = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+
+        return {
+          id: workout.id,
+          name: workout.name,
+          daysAgo: daysAgo,
+          duration: Math.round((workout.duration_seconds || 0) / 60), // Convert seconds to minutes
+          xp: workout.xp_earned,
+          achievements: workout.personal_records_count > 0
+            ? [{ type: 'pr' as const, name: `${workout.personal_records_count} PR${workout.personal_records_count > 1 ? 's' : ''}` }]
+            : [],
+        }
+      })
     : mockRecentActivity
 
   return (

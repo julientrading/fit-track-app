@@ -44,8 +44,8 @@ export const mockRecentActivity = [
     duration: 58,
     xp: 150,
     achievements: [
-      { type: 'pr', name: 'Bench Press' },
-      { type: 'pr', name: 'Dips' },
+      { type: 'pr' as const, name: 'Bench Press' },
+      { type: 'pr' as const, name: 'Dips' },
     ],
   },
   {
@@ -54,7 +54,7 @@ export const mockRecentActivity = [
     daysAgo: 3,
     duration: 62,
     xp: 180,
-    achievements: [{ type: 'badge', name: '🏆 Leg Legend' }],
+    achievements: [{ type: 'badge' as const, name: '🏆 Leg Legend' }],
   },
 ]
 
