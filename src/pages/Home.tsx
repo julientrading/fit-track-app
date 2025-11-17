@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DashboardHeader } from '@/components/layout/DashboardHeader'
 import { BottomNavigation } from '@/components/layout/BottomNavigation'
@@ -5,6 +6,15 @@ import { NextWorkoutCard } from '@/components/features/workout/NextWorkoutCard'
 import { QuickStats } from '@/components/features/workout/QuickStats'
 import { RecentActivity } from '@/components/features/workout/RecentActivity'
 import { LatestAchievement } from '@/components/features/workout/LatestAchievement'
+import { useAuthStore } from '@/stores/authStore'
+import {
+  getActiveProgram,
+  getWorkoutDaysByProgram,
+  getWorkoutDayExercises,
+  getRecentWorkouts,
+  getWeeklyStats,
+  getUserPRs,
+} from '@/lib/database'
 import {
   mockUser,
   mockNextWorkout,
@@ -15,46 +25,160 @@ import {
 
 export const Home = () => {
   const navigate = useNavigate()
+  const { userProfile } = useAuthStore()
+  const [isLoading, setIsLoading] = useState(true)
+  const [activeProgram, setActiveProgram] = useState<any>(null)
+  const [nextWorkout, setNextWorkout] = useState<any>(null)
+  const [weeklyStats, setWeeklyStats] = useState<any>(null)
+  const [recentWorkouts, setRecentWorkouts] = useState<any[]>([])
+  const [personalRecords, setPersonalRecords] = useState<any[]>([])
+
+  useEffect(() => {
+    if (!userProfile) return
+
+    const loadDashboardData = async () => {
+      try {
+        setIsLoading(true)
+
+        // Fetch all dashboard data in parallel
+        const [program, stats, workouts, prs] = await Promise.all([
+          getActiveProgram(userProfile.id),
+          getWeeklyStats(userProfile.id),
+          getRecentWorkouts(userProfile.id, 5),
+          getUserPRs(userProfile.id),
+        ])
+
+        setActiveProgram(program)
+        setWeeklyStats(stats)
+        setRecentWorkouts(workouts)
+        setPersonalRecords(prs)
+
+        // If user has an active program, fetch the next workout day
+        if (program) {
+          const workoutDays = await getWorkoutDaysByProgram(program.id)
+          if (workoutDays.length > 0) {
+            // Get the first workout day (in a real app, we'd track which day is next)
+            const nextDay = workoutDays[0]
+            const exercises = await getWorkoutDayExercises(nextDay.id)
+
+            setNextWorkout({
+              workoutDayId: nextDay.id,
+              name: nextDay.name,
+              estimatedDuration: exercises.length * 15, // Rough estimate: 15 min per exercise
+              currentDay: nextDay.day_number,
+              totalDays: workoutDays.length,
+              allExercises: exercises.map((ex: any) => ({
+                name: ex.exercise.name,
+                sets: ex.sets.length,
+                reps: ex.sets[0]?.targetReps || 10,
+              })),
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadDashboardData()
+  }, [userProfile])
 
   const handleStartWorkout = () => {
-    navigate('/workout/1') // Navigate to workout execution
+    if (nextWorkout) {
+      navigate(`/workout/${nextWorkout.workoutDayId}`)
+    } else {
+      // No active program, redirect to create program
+      alert('Please create a program first!')
+      // navigate('/program/create')
+    }
   }
 
   const handleViewAllActivity = () => {
     alert('View all activity! (This will navigate to history page)')
   }
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-primary-purple-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Prepare data with fallbacks to mock data
+  const displayNextWorkout = nextWorkout || mockNextWorkout
+  const displayStats = weeklyStats || mockWeeklyStats
+  const displayUser = userProfile || mockUser
+
+  // Transform recent workouts for the RecentActivity component
+  const recentActivities = recentWorkouts.length > 0
+    ? recentWorkouts.map(workout => ({
+        id: workout.id,
+        type: 'workout' as const,
+        name: workout.name,
+        time: new Date(workout.started_at).toLocaleDateString(),
+        xp: workout.xp_earned,
+        hasAchievement: workout.personal_records_count > 0,
+      }))
+    : mockRecentActivity
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with gradient background */}
-      <DashboardHeader userName={mockUser.name} streak={mockUser.streak} />
+      <DashboardHeader
+        userName={displayUser.full_name || displayUser.name}
+        streak={displayUser.current_streak || displayUser.streak}
+      />
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto p-6 pb-24">
-        {/* Next Workout Card */}
-        <NextWorkoutCard
-          name={mockNextWorkout.name}
-          estimatedDuration={mockNextWorkout.estimatedDuration}
-          currentDay={mockNextWorkout.currentDay}
-          totalDays={mockNextWorkout.totalDays}
-          allExercises={mockNextWorkout.allExercises}
-          onStartWorkout={handleStartWorkout}
-        />
+        {/* Next Workout Card or Create Program prompt */}
+        {nextWorkout ? (
+          <NextWorkoutCard
+            name={displayNextWorkout.name}
+            estimatedDuration={displayNextWorkout.estimatedDuration}
+            currentDay={displayNextWorkout.currentDay}
+            totalDays={displayNextWorkout.totalDays}
+            allExercises={displayNextWorkout.allExercises}
+            onStartWorkout={handleStartWorkout}
+          />
+        ) : (
+          <div className="bg-white rounded-2xl shadow-lg p-8 mb-6 text-center">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              No Active Program
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Create a workout program to get started with your fitness journey!
+            </p>
+            <button
+              onClick={() => alert('Program creation coming soon!')}
+              className="px-6 py-3 bg-gradient-primary text-white font-semibold rounded-xl hover:opacity-90 transition"
+            >
+              Create Program
+            </button>
+          </div>
+        )}
 
         {/* Quick Stats */}
         <QuickStats
-          workouts={mockWeeklyStats.workouts}
+          workouts={displayStats.totalWorkouts || displayStats.workouts}
           workoutsChange={mockWeeklyStats.workoutsChange}
-          totalTime={mockWeeklyStats.totalTime}
-          avgTime={mockWeeklyStats.avgTime}
-          personalRecords={mockWeeklyStats.personalRecords}
+          totalTime={displayStats.totalTime}
+          avgTime={displayStats.totalWorkouts > 0 ? Math.round(displayStats.totalTime / displayStats.totalWorkouts) : 0}
+          personalRecords={displayStats.totalPRs || displayStats.personalRecords}
           xpEarned={mockWeeklyStats.xpEarned}
-          level={mockUser.level}
+          level={displayUser.level}
           levelProgress={mockWeeklyStats.levelProgress}
         />
 
         {/* Recent Activity */}
-        <RecentActivity activities={mockRecentActivity} onViewAll={handleViewAllActivity} />
+        <RecentActivity activities={recentActivities} onViewAll={handleViewAllActivity} />
 
         {/* Latest Achievement */}
         <LatestAchievement
