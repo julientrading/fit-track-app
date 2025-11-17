@@ -10,16 +10,18 @@ export function Login() {
   const { login, isLoading, error, clearError } = useAuthStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loginError, setLoginError] = useState<string | null>(null)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     clearError()
+    setLoginError(null)
 
     try {
       await login({ email, password })
       navigate('/')
     } catch (error) {
-      // Error is already set in the store
+      setLoginError((error as Error).message)
       console.error('Login failed:', error)
     }
   }
@@ -42,7 +44,7 @@ export function Login() {
 
         {/* Login Form */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-          {error && (
+          {loginError && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
               <div>
@@ -50,7 +52,7 @@ export function Login() {
                   Login failed
                 </p>
                 <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                  {error}
+                  {loginError}
                 </p>
               </div>
             </div>

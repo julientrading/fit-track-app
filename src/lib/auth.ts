@@ -15,12 +15,18 @@ export interface LoginData {
 
 /**
  * Sign up a new user and create their profile
+ * Note: The user profile is automatically created via database trigger
  */
 export async function signUp({ email, password, fullName, preferredUnit = 'lbs' }: SignUpData) {
-  // 1. Create auth user
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        full_name: fullName,
+        preferred_unit: preferredUnit,
+      },
+    },
   })
 
   if (authError) {
@@ -31,27 +37,8 @@ export async function signUp({ email, password, fullName, preferredUnit = 'lbs' 
     throw new Error('Failed to create user account')
   }
 
-  // 2. Create user profile in public.users table
-  const { error: profileError } = await supabase.from('users').insert({
-    id: authData.user.id,
-    email,
-    full_name: fullName,
-    preferred_unit: preferredUnit,
-    xp: 0,
-    level: 1,
-    current_streak: 0,
-    longest_streak: 0,
-    theme: 'auto',
-    subscription_tier: 'free',
-    subscription_status: 'active',
-  })
-
-  if (profileError) {
-    // If profile creation fails, we should clean up the auth user
-    // But for now, we'll just throw the error
-    throw new Error(`Profile creation failed: ${profileError.message}`)
-  }
-
+  // The user profile is automatically created by the database trigger
+  // triggered by the auth.users INSERT event
   return authData
 }
 

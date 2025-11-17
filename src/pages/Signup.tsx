@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/authStore'
 
 export function Signup() {
   const navigate = useNavigate()
-  const { signUp, isLoading, error, clearError } = useAuthStore()
+  const { signUp, isLoading, clearError } = useAuthStore()
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -16,11 +16,13 @@ export function Signup() {
     preferredUnit: 'lbs' as 'lbs' | 'kg',
   })
   const [passwordError, setPasswordError] = useState('')
+  const [signupError, setSignupError] = useState<string | null>(null)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     clearError()
     setPasswordError('')
+    setSignupError(null)
 
     // Validate password match
     if (formData.password !== formData.confirmPassword) {
@@ -43,7 +45,7 @@ export function Signup() {
       })
       navigate('/')
     } catch (error) {
-      // Error is already set in the store
+      setSignupError((error as Error).message)
       console.error('Signup failed:', error)
     }
   }
@@ -70,7 +72,7 @@ export function Signup() {
 
         {/* Signup Form */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-          {error && (
+          {signupError && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
               <div>
@@ -78,7 +80,7 @@ export function Signup() {
                   Signup failed
                 </p>
                 <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                  {error}
+                  {signupError}
                 </p>
               </div>
             </div>
