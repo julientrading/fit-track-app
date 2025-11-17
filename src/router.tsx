@@ -2,6 +2,9 @@ import { createBrowserRouter } from 'react-router-dom'
 import { Home } from './pages/Home'
 import { WorkoutExecution } from './pages/WorkoutExecution'
 import { WorkoutComplete } from './pages/WorkoutComplete'
+import { Profile } from './pages/Profile'
+import { EditProfile } from './pages/EditProfile'
+import { Settings } from './pages/Settings'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -38,6 +41,30 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <WorkoutComplete />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/profile',
+    element: (
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/profile/edit',
+    element: (
+      <ProtectedRoute>
+        <EditProfile />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/settings',
+    element: (
+      <ProtectedRoute>
+        <Settings />
       </ProtectedRoute>
     ),
   },

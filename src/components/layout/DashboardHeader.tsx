@@ -1,4 +1,5 @@
-import { Bell } from 'lucide-react'
+import { Bell, UserCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 interface DashboardHeaderProps {
   userName: string
@@ -6,6 +7,8 @@ interface DashboardHeaderProps {
 }
 
 export const DashboardHeader = ({ userName, streak }: DashboardHeaderProps) => {
+  const navigate = useNavigate()
+
   return (
     <div className="bg-gradient-primary text-white px-6 py-6">
       <div className="max-w-4xl mx-auto">
@@ -14,9 +17,17 @@ export const DashboardHeader = ({ userName, streak }: DashboardHeaderProps) => {
             <p className="text-sm opacity-90">Welcome back,</p>
             <h1 className="text-2xl font-bold">{userName}! 👋</h1>
           </div>
-          <button className="bg-white/20 hover:bg-white/30 rounded-full p-3 transition">
-            <Bell className="w-6 h-6" />
-          </button>
+          <div className="flex gap-2">
+            <button className="bg-white/20 hover:bg-white/30 rounded-full p-3 transition">
+              <Bell className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => navigate('/profile')}
+              className="bg-white/20 hover:bg-white/30 rounded-full p-3 transition"
+            >
+              <UserCircle className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         {/* Streak Counter */}
