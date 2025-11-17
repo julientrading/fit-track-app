@@ -325,26 +325,18 @@ export async function completeWorkout(workoutLogId: string): Promise<WorkoutLog>
 
   if (error) throw new Error(error.message)
 
-  // Update user's total XP
-  const { error: userError } = await supabase.rpc('increment', {
-    row_id: workoutLog.user_id,
-    x: totalXP,
-  })
+  // Update user's total XP with atomic increment
+  const { data: userData } = await supabase
+    .from('users')
+    .select('xp')
+    .eq('id', workoutLog.user_id)
+    .single()
 
-  // If increment RPC doesn't exist, update directly
-  if (userError) {
-    const { data: userData } = await supabase
+  if (userData) {
+    await supabase
       .from('users')
-      .select('xp')
+      .update({ xp: (userData.xp || 0) + totalXP })
       .eq('id', workoutLog.user_id)
-      .single()
-
-    if (userData) {
-      await supabase
-        .from('users')
-        .update({ xp: (userData.xp || 0) + totalXP })
-        .eq('id', workoutLog.user_id)
-    }
   }
 
   return data

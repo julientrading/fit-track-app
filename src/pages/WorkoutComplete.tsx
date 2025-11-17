@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { CheckCircle2, BarChart3, Home } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -19,6 +19,10 @@ export function WorkoutComplete() {
   const { id } = useParams()
   const { userProfile } = useAuthStore()
 
+  // Ref to prevent double loading in React Strict Mode
+  const isInitializing = useRef(false)
+  const hasInitialized = useRef(false)
+
   const [isLoading, setIsLoading] = useState(true)
   const [workoutData, setWorkoutData] = useState<{
     name: string
@@ -35,7 +39,14 @@ export function WorkoutComplete() {
     if (!id) return
 
     const loadWorkoutData = async () => {
+      // Guard against double loading (React Strict Mode)
+      if (isInitializing.current || hasInitialized.current) {
+        console.log('🚫 Workout completion already loading or loaded, skipping...')
+        return
+      }
+
       try {
+        isInitializing.current = true
         setIsLoading(true)
         console.log('📊 Loading workout completion data for:', id)
 
@@ -100,6 +111,10 @@ export function WorkoutComplete() {
           xpEarned: workoutLog.xp_earned,
           personalRecords: formattedPRs,
         })
+
+        // Mark as initialized
+        hasInitialized.current = true
+        isInitializing.current = false
       } catch (error) {
         console.error('❌ Failed to load workout data:', error)
         // Fallback to basic data
@@ -113,6 +128,7 @@ export function WorkoutComplete() {
           xpEarned: 0,
           personalRecords: [],
         })
+        isInitializing.current = false
       } finally {
         setIsLoading(false)
       }
