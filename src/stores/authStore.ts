@@ -32,21 +32,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // Initialize auth state and listen for changes
   initialize: async () => {
     try {
+      console.log('[AuthStore] Initializing auth...')
       set({ isLoading: true })
 
       // Get current user
+      console.log('[AuthStore] Getting current user...')
       const authUser = await getCurrentUser()
+      console.log('[AuthStore] Current user:', authUser ? 'logged in' : 'not logged in')
 
       if (authUser) {
         // Get user profile
+        console.log('[AuthStore] Fetching user profile...')
         const userProfile = await getUserProfile(authUser.id)
+        console.log('[AuthStore] User profile loaded')
         set({ authUser, userProfile, isInitialized: true, isLoading: false })
       } else {
+        console.log('[AuthStore] No user logged in, initialization complete')
         set({ authUser: null, userProfile: null, isInitialized: true, isLoading: false })
       }
 
       // Listen for auth changes
+      console.log('[AuthStore] Setting up auth state listener...')
       onAuthStateChange(async (event, session) => {
+        console.log('[AuthStore] Auth state changed:', event)
         if (event === 'SIGNED_IN' && session?.user) {
           const userProfile = await getUserProfile(session.user.id)
           set({ authUser: session.user, userProfile })
@@ -54,8 +62,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           set({ authUser: null, userProfile: null })
         }
       })
+      console.log('[AuthStore] Auth initialization complete')
     } catch (error) {
-      console.error('Failed to initialize auth:', error)
+      console.error('[AuthStore] Failed to initialize auth:', error)
       set({ error: (error as Error).message, isInitialized: true, isLoading: false })
     }
   },
