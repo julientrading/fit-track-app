@@ -91,7 +91,7 @@ export function Signup() {
               placeholder="John Doe"
               value={formData.fullName}
               onChange={(e) => updateFormData('fullName', e.target.value)}
-              leftIcon={User}
+              leftIcon={<User className="w-5 h-5" />}
               required
               autoComplete="name"
             />
@@ -102,7 +102,7 @@ export function Signup() {
               placeholder="you@example.com"
               value={formData.email}
               onChange={(e) => updateFormData('email', e.target.value)}
-              leftIcon={Mail}
+              leftIcon={<Mail className="w-5 h-5" />}
               required
               autoComplete="email"
             />
@@ -113,7 +113,7 @@ export function Signup() {
               placeholder="••••••••"
               value={formData.password}
               onChange={(e) => updateFormData('password', e.target.value)}
-              leftIcon={Lock}
+              leftIcon={<Lock className="w-5 h-5" />}
               required
               autoComplete="new-password"
               helperText="At least 6 characters"
@@ -126,7 +126,7 @@ export function Signup() {
               placeholder="••••••••"
               value={formData.confirmPassword}
               onChange={(e) => updateFormData('confirmPassword', e.target.value)}
-              leftIcon={Lock}
+              leftIcon={<Lock className="w-5 h-5" />}
               required
               autoComplete="new-password"
             />

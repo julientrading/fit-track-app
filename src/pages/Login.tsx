@@ -63,7 +63,7 @@ export function Login() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              leftIcon={Mail}
+              leftIcon={<Mail className="w-5 h-5" />}
               required
               autoComplete="email"
             />
@@ -74,7 +74,7 @@ export function Login() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              leftIcon={Lock}
+              leftIcon={<Lock className="w-5 h-5" />}
               required
               autoComplete="current-password"
             />
