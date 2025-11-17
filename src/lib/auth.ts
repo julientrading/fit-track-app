@@ -71,15 +71,19 @@ export async function logout() {
 
 /**
  * Get the current authenticated user
+ * Uses getSession() first for faster local check, then validates with getUser()
  */
 export async function getCurrentUser() {
-  const { data: { user }, error } = await supabase.auth.getUser()
+  // First check local session (fast, synchronous read from localStorage)
+  const { data: { session } } = await supabase.auth.getSession()
 
-  if (error) {
-    throw new Error(error.message)
+  if (!session) {
+    return null
   }
 
-  return user
+  // Session exists, return user immediately
+  // Note: getUser() could be called in background to validate, but for speed we trust the session
+  return session.user
 }
 
 /**

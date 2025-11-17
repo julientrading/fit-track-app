@@ -34,9 +34,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     )
   }
 
-  // If timeout reached or there's an error, redirect to login
+  // If timeout reached and still not initialized, redirect to login
   if (timeoutReached && !isInitialized) {
-    console.error('Auth initialization timeout')
+    console.warn('[ProtectedRoute] Auth initialization timed out after 10s, redirecting to login')
     return <Navigate to="/login" replace />
   }
 
