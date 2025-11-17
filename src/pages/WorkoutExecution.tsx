@@ -79,6 +79,7 @@ export const WorkoutExecution = () => {
         setExercises(exercisesData as WorkoutExercise[])
 
         // Create workout log
+        console.log('🏋️ Creating workout log for user:', authUser.id)
         const log = await createWorkoutLog({
           user_id: authUser.id,
           program_id: null, // We'll need to get this from workout_day in a future enhancement
@@ -92,6 +93,7 @@ export const WorkoutExecution = () => {
           duration_seconds: null,
           feeling: null,
         })
+        console.log('✅ Workout log created:', log.id)
 
         setWorkoutLog(log)
 
@@ -204,17 +206,33 @@ export const WorkoutExecution = () => {
   }
 
   const handleCompleteSet = async () => {
-    if (!workoutLog || !authUser) return
+    if (!workoutLog || !authUser) {
+      console.error('Missing required data:', { workoutLog, authUser })
+      alert('Error: Not logged in or workout not started')
+      return
+    }
 
     const currentExercise = getCurrentExercise()
     const currentSet = getCurrentSet()
-    if (!currentExercise || !currentSet) return
+    if (!currentExercise || !currentSet) {
+      console.error('Missing exercise or set data')
+      return
+    }
+
+    console.log('💾 Starting to save set...', {
+      workoutLogId: workoutLog.id,
+      userId: authUser.id,
+      exerciseId: currentExercise.exercise_id,
+      setNumber: currentSetIndex + 1,
+      performance: performanceData,
+    })
 
     try {
       // Create exercise log if it doesn't exist for this exercise
       let exerciseLog = exerciseLogs.get(currentExercise.id)
 
       if (!exerciseLog) {
+        console.log('📝 Creating exercise log...')
         exerciseLog = await createExerciseLog({
           workout_log_id: workoutLog.id,
           exercise_id: currentExercise.exercise_id,
@@ -222,12 +240,16 @@ export const WorkoutExecution = () => {
           exercise_name: currentExercise.exercise.name,
           notes: null,
         })
+        console.log('✅ Exercise log created:', exerciseLog.id)
 
         setExerciseLogs(new Map(exerciseLogs.set(currentExercise.id, exerciseLog)))
+      } else {
+        console.log('📋 Using existing exercise log:', exerciseLog.id)
       }
 
       // Save the set to database
-      await createSet({
+      console.log('💪 Saving set to database...')
+      const savedSet = await createSet({
         exercise_log_id: exerciseLog.id,
         user_id: authUser.id,
         exercise_id: currentExercise.exercise_id,
@@ -241,6 +263,7 @@ export const WorkoutExecution = () => {
         time_seconds: null,
         distance: null,
       })
+      console.log('✅ Set saved successfully!', savedSet)
 
       // Mark set as completed
       const setKey = `${currentExerciseIndex}-${currentSetIndex}`
@@ -249,8 +272,10 @@ export const WorkoutExecution = () => {
       // Show rest timer
       setShowRestTimer(true)
     } catch (err) {
-      console.error('Failed to save set:', err)
-      setError(err instanceof Error ? err.message : 'Failed to save set')
+      console.error('❌ Failed to save set:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save set'
+      setError(errorMessage)
+      alert(`Error saving set: ${errorMessage}\n\nCheck the console for details.`)
     }
   }
 
