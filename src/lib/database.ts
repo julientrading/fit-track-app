@@ -173,35 +173,138 @@ export async function completeWorkout(workoutLogId: string): Promise<WorkoutLog>
   // First, get the workout details to calculate stats
   const { workoutLog, exerciseLogs } = await getWorkoutDetails(workoutLogId)
 
-  // Calculate stats
+  // Get the workout day exercises to access target values
+  const workoutDayExercises = workoutLog.workout_day_id
+    ? await getWorkoutDayExercises(workoutLog.workout_day_id)
+    : []
+
+  // Create a map of exercise_id -> workout_day_exercise for quick lookup
+  const exerciseTargetsMap = new Map(
+    workoutDayExercises.map((wde: any) => [wde.exercise_id, wde])
+  )
+
+  // Calculate stats and XP
   let totalSets = 0
   let totalReps = 0
   let totalVolume = 0
 
+  // XP tracking
+  let baseXP = 50 // Base completion bonus
+  let setCompletionXP = 0
+  let effortBonusXP = 0
+  let perfectSets = 0
+  let totalWorkingSets = 0
+
+  // Track RPE for multiplier
+  let totalRPE = 0
+  let rpeCount = 0
+
   exerciseLogs.forEach((exerciseLog) => {
-    exerciseLog.sets.forEach((set) => {
+    const workoutDayExercise = exerciseTargetsMap.get(exerciseLog.exercise_id)
+
+    exerciseLog.sets.forEach((set, setIndex) => {
       if (set.completed) {
         totalSets++
         totalReps += set.reps || 0
         totalVolume += (set.weight || 0) * (set.reps || 0)
+
+        // Skip warmup sets for XP calculation
+        if (set.set_type === 'warmup') return
+
+        totalWorkingSets++
+
+        // Get target for this set from workout plan
+        const setTarget = workoutDayExercise?.sets?.[setIndex]
+
+        if (setTarget && set.reps !== null) {
+          let targetReps: number
+          if (typeof setTarget.targetReps === 'number') {
+            targetReps = setTarget.targetReps
+          } else if ('min' in setTarget.targetReps) {
+            // For ranges, use the middle value as target
+            targetReps = Math.round((setTarget.targetReps.min + setTarget.targetReps.max) / 2)
+          } else {
+            // For "to failure", give full credit if they tried
+            targetReps = set.reps
+          }
+
+          // Calculate set XP based on target achievement
+          const achievementRatio = set.reps / targetReps
+
+          if (achievementRatio >= 1.0) {
+            // Hit or exceeded target
+            const baseSetXP = 10
+            const bonusReps = Math.max(0, set.reps - targetReps)
+            const exceedBonus = bonusReps * 5
+            setCompletionXP += baseSetXP + exceedBonus
+
+            if (achievementRatio >= 0.95 && achievementRatio <= 1.05) {
+              perfectSets++
+            }
+          } else if (achievementRatio >= 0.8) {
+            // Close to target (80%+), give most credit
+            setCompletionXP += Math.round(10 * achievementRatio)
+          } else {
+            // Missed target significantly, still give partial credit for trying
+            setCompletionXP += Math.round(10 * achievementRatio * 0.8)
+          }
+        } else {
+          // No target available, give standard XP
+          setCompletionXP += 10
+        }
+
+        // Track RPE for effort multiplier
+        if (set.rpe !== null) {
+          totalRPE += set.rpe
+          rpeCount++
+        }
       }
     })
   })
+
+  // Calculate effort multiplier based on average RPE
+  let effortMultiplier = 1.0
+  if (rpeCount > 0) {
+    const avgRPE = totalRPE / rpeCount
+    if (avgRPE <= 4) {
+      effortMultiplier = 0.8 // Too easy, reduce XP
+    } else if (avgRPE >= 8) {
+      effortMultiplier = 1.2 // Challenging, bonus XP
+    }
+  }
+
+  // Apply effort multiplier to set completion XP
+  const adjustedSetXP = Math.round(setCompletionXP * effortMultiplier)
+  effortBonusXP = adjustedSetXP - setCompletionXP
+
+  // Perfect workout bonus (hit 90%+ of targets)
+  const perfectRatio = totalWorkingSets > 0 ? perfectSets / totalWorkingSets : 0
+  const perfectWorkoutBonus = perfectRatio >= 0.9 ? 50 : 0
+
+  // Count PRs for bonus
+  const prCount = exerciseLogs.reduce((count, el) => {
+    return count + el.sets.filter(s => s.is_personal_record).length
+  }, 0)
+  const prBonusXP = prCount * 100
+
+  // Calculate total XP
+  const totalXP = baseXP + adjustedSetXP + perfectWorkoutBonus + prBonusXP
 
   // Calculate duration
   const startTime = new Date(workoutLog.started_at).getTime()
   const endTime = new Date().getTime()
   const durationSeconds = Math.floor((endTime - startTime) / 1000)
 
-  // Calculate XP
-  // Formula: 50 base + 10 per set + 2 per rep + 1 per 100 volume units
-  const baseXP = 50
-  const setsXP = totalSets * 10
-  const repsXP = totalReps * 2
-  const volumeXP = Math.floor(totalVolume / 100)
-  const totalXP = baseXP + setsXP + repsXP + volumeXP
-
-  console.log('💰 Calculating XP:', { baseXP, setsXP, repsXP, volumeXP, totalXP })
+  console.log('💰 XP Breakdown:', {
+    baseXP,
+    setCompletionXP,
+    effortMultiplier: effortMultiplier.toFixed(2),
+    effortBonusXP,
+    adjustedSetXP,
+    perfectWorkoutBonus,
+    prBonusXP: `${prCount} PRs × 100`,
+    totalXP,
+  })
 
   // Update workout log with completion data
   const { data, error } = await supabase
@@ -214,6 +317,7 @@ export async function completeWorkout(workoutLogId: string): Promise<WorkoutLog>
       total_reps: totalReps,
       total_volume: totalVolume,
       xp_earned: totalXP,
+      personal_records_count: prCount,
     })
     .eq('id', workoutLogId)
     .select()
