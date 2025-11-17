@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { WorkoutHeader } from '@/components/features/workout/WorkoutHeader'
 import { ExerciseInfo } from '@/components/features/workout/ExerciseInfo'
@@ -34,6 +34,10 @@ export const WorkoutExecution = () => {
   const { id } = useParams()
   const { authUser, userProfile } = useAuthStore()
 
+  // Ref to prevent double initialization in React Strict Mode
+  const isInitializing = useRef(false)
+  const hasInitialized = useRef(false)
+
   // Workout data
   const [workoutDay, setWorkoutDay] = useState<WorkoutDay | null>(null)
   const [exercises, setExercises] = useState<WorkoutExercise[]>([])
@@ -64,7 +68,14 @@ export const WorkoutExecution = () => {
     if (!id || !authUser) return
 
     const loadWorkoutData = async () => {
+      // Guard against double initialization (React Strict Mode)
+      if (isInitializing.current || hasInitialized.current) {
+        console.log('🚫 Workout already initializing or initialized, skipping...')
+        return
+      }
+
       try {
+        isInitializing.current = true
         setIsLoading(true)
         setError(null)
 
@@ -109,9 +120,14 @@ export const WorkoutExecution = () => {
             rpe: 7,
           })
         }
+
+        // Mark as initialized
+        hasInitialized.current = true
+        isInitializing.current = false
       } catch (err) {
         console.error('Failed to load workout:', err)
         setError(err instanceof Error ? err.message : 'Failed to load workout')
+        isInitializing.current = false
       } finally {
         setIsLoading(false)
       }
