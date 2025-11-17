@@ -189,13 +189,18 @@ export async function completeWorkout(workoutLogId: string): Promise<WorkoutLog>
 // =====================================================
 
 export async function createExerciseLog(exerciseData: InsertExerciseLog): Promise<ExerciseLog> {
+  console.log('[DB] Creating exercise log with data:', exerciseData)
   const { data, error } = await supabase
     .from('exercise_logs')
     .insert(exerciseData)
     .select()
     .single()
 
-  if (error) throw new Error(error.message)
+  if (error) {
+    console.error('[DB] Failed to create exercise log:', error)
+    throw new Error(error.message)
+  }
+  console.log('[DB] Exercise log created successfully:', data)
   return data
 }
 
@@ -215,9 +220,14 @@ export async function getExerciseLogsByWorkout(workoutLogId: string): Promise<Ex
 // =====================================================
 
 export async function createSet(setData: InsertSet): Promise<Set> {
+  console.log('[DB] Creating set with data:', setData)
   const { data, error } = await supabase.from('sets').insert(setData).select().single()
 
-  if (error) throw new Error(error.message)
+  if (error) {
+    console.error('[DB] Failed to create set:', error)
+    throw new Error(error.message)
+  }
+  console.log('[DB] Set created successfully:', data)
   return data
 }
 

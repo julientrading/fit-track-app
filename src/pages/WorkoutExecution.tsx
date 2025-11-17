@@ -5,6 +5,7 @@ import { ExerciseInfo } from '@/components/features/workout/ExerciseInfo'
 import { CurrentSetInfo } from '@/components/features/workout/CurrentSetInfo'
 import { RestTimerModal } from '@/components/features/workout/RestTimerModal'
 import { LogPerformance } from '@/components/features/workout/LogPerformance'
+import { TodaysSets } from '@/components/features/workout/TodaysSets'
 import { Button, Toast } from '@/components/ui'
 import { useAuthStore } from '@/stores/authStore'
 import {
@@ -161,6 +162,49 @@ export const WorkoutExecution = () => {
     }
     setIndex += currentSetIndex
     return setIndex
+  }
+
+  // Build Today's Sets data
+  const getTodaysSetsData = () => {
+    const allSets: Array<{
+      exerciseName: string
+      setNumber: number
+      targetWeight: number
+      targetReps: number | string
+      status: 'completed' | 'current' | 'pending'
+      unit: string
+    }> = []
+
+    let globalSetIndex = 0
+
+    exercises.forEach((exercise) => {
+      exercise.sets.forEach((set, setIndex) => {
+        const isCompleted = globalSetIndex < getCurrentSetGlobal()
+        const isCurrent = globalSetIndex === getCurrentSetGlobal()
+
+        let repsDisplay: number | string
+        if (typeof set.targetReps === 'number') {
+          repsDisplay = set.targetReps
+        } else if ('min' in set.targetReps) {
+          repsDisplay = `${set.targetReps.min}-${set.targetReps.max}`
+        } else {
+          repsDisplay = 'To failure'
+        }
+
+        allSets.push({
+          exerciseName: exercise.exercise.name,
+          setNumber: setIndex + 1,
+          targetWeight: set.targetWeight,
+          targetReps: repsDisplay,
+          status: isCompleted ? 'completed' : isCurrent ? 'current' : 'pending',
+          unit: userProfile?.preferred_unit || 'lbs',
+        })
+
+        globalSetIndex++
+      })
+    })
+
+    return allSets
   }
 
   // Get next set preview for rest timer
@@ -496,10 +540,13 @@ export const WorkoutExecution = () => {
         {/* Add Note Button */}
         <button
           onClick={handleAddNote}
-          className="w-full border-2 border-dashed border-gray-300 text-gray-500 font-semibold py-3 rounded-xl hover:border-primary-purple-400 hover:text-primary-purple-600 hover:bg-purple-50 transition mb-20"
+          className="w-full border-2 border-dashed border-gray-300 text-gray-500 font-semibold py-3 rounded-xl hover:border-primary-purple-400 hover:text-primary-purple-600 hover:bg-purple-50 transition mb-6"
         >
           + Add Note for This Set
         </button>
+
+        {/* Today's Sets */}
+        <TodaysSets sets={getTodaysSetsData()} />
       </div>
 
       {/* Rest Timer Modal - appears after completing a set */}
