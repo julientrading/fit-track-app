@@ -10,6 +10,7 @@ interface AuthState {
   userProfile: User | null
   isLoading: boolean
   isInitialized: boolean
+  isInitializing: boolean
   error: string | null
 
   // Actions
@@ -27,13 +28,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   userProfile: null,
   isLoading: false,
   isInitialized: false,
+  isInitializing: false,
   error: null,
 
   // Initialize auth state and listen for changes
   initialize: async () => {
+    // Guard against multiple simultaneous initializations
+    const state = get()
+    if (state.isInitializing || state.isInitialized) {
+      console.log('[AuthStore] Already initialized or initializing, skipping...')
+      return
+    }
+
     try {
       console.log('[AuthStore] Initializing auth...')
-      set({ isLoading: true })
+      set({ isLoading: true, isInitializing: true })
 
       // Get current user
       console.log('[AuthStore] Getting current user...')
@@ -45,10 +54,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         console.log('[AuthStore] Fetching user profile...')
         const userProfile = await getUserProfile(authUser.id)
         console.log('[AuthStore] User profile loaded')
-        set({ authUser, userProfile, isInitialized: true, isLoading: false })
+        set({ authUser, userProfile, isInitialized: true, isInitializing: false, isLoading: false })
       } else {
         console.log('[AuthStore] No user logged in, initialization complete')
-        set({ authUser: null, userProfile: null, isInitialized: true, isLoading: false })
+        set({ authUser: null, userProfile: null, isInitialized: true, isInitializing: false, isLoading: false })
       }
 
       // Listen for auth changes
@@ -65,7 +74,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.log('[AuthStore] Auth initialization complete')
     } catch (error) {
       console.error('[AuthStore] Failed to initialize auth:', error)
-      set({ error: (error as Error).message, isInitialized: true, isLoading: false })
+      set({ error: (error as Error).message, isInitialized: true, isInitializing: false, isLoading: false })
     }
   },
 

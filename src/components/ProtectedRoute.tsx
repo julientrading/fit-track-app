@@ -14,7 +14,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setTimeoutReached(true)
-    }, 5000) // 5 second timeout
+    }, 10000) // 10 second timeout (increased for slower connections)
 
     return () => clearTimeout(timeout)
   }, [])

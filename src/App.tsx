@@ -6,10 +6,11 @@ import { useAuthStore } from './stores/authStore'
 function App() {
   const { initialize } = useAuthStore()
 
-  // Initialize auth when app loads
+  // Initialize auth when app loads (only once)
   useEffect(() => {
     initialize()
-  }, [initialize])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return <RouterProvider router={router} />
 }
