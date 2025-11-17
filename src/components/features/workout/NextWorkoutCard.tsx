@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui'
 
 interface Exercise {
@@ -7,25 +9,28 @@ interface Exercise {
 
 interface NextWorkoutCardProps {
   name: string
-  exercises: number
   estimatedDuration: number
   currentDay: number
   totalDays: number
-  exercisePreview: Exercise[]
-  moreExercises: number
+  allExercises: Exercise[]
   onStartWorkout?: () => void
 }
 
 export const NextWorkoutCard = ({
   name,
-  exercises,
   estimatedDuration,
   currentDay,
   totalDays,
-  exercisePreview,
-  moreExercises,
+  allExercises,
   onStartWorkout,
 }: NextWorkoutCardProps) => {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  // Show first 3 exercises when collapsed
+  const previewCount = 3
+  const displayedExercises = isExpanded ? allExercises : allExercises.slice(0, previewCount)
+  const hasMore = allExercises.length > previewCount
+
   return (
     <div className="mb-6">
       <h2 className="text-lg font-bold text-gray-900 mb-3">Next Workout</h2>
@@ -35,7 +40,7 @@ export const NextWorkoutCard = ({
             <div>
               <h3 className="text-2xl font-bold mb-1">{name}</h3>
               <p className="text-sm opacity-90">
-                {exercises} exercises • ~{estimatedDuration} min
+                {allExercises.length} exercises • ~{estimatedDuration} min
               </p>
             </div>
             <div className="bg-white/20 px-3 py-1 rounded-full text-sm font-semibold">
@@ -47,14 +52,31 @@ export const NextWorkoutCard = ({
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 mb-4">
             <p className="text-xs font-semibold mb-2 opacity-80">TODAY'S EXERCISES</p>
             <div className="space-y-1 text-sm">
-              {exercisePreview.map((exercise, index) => (
+              {displayedExercises.map((exercise, index) => (
                 <div key={index} className="flex justify-between">
                   <span>• {exercise.name}</span>
                   <span className="opacity-80">{exercise.sets} sets</span>
                 </div>
               ))}
-              {moreExercises > 0 && (
-                <div className="text-xs opacity-70 mt-2">+{moreExercises} more exercises</div>
+
+              {/* Expand/Collapse Button */}
+              {hasMore && (
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="flex items-center gap-1 text-xs opacity-80 hover:opacity-100 transition mt-2 w-full"
+                >
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp size={14} />
+                      <span>Show less</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown size={14} />
+                      <span>+{allExercises.length - previewCount} more exercises</span>
+                    </>
+                  )}
+                </button>
               )}
             </div>
           </div>

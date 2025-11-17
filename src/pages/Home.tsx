@@ -31,12 +31,10 @@ export const Home = () => {
         {/* Next Workout Card */}
         <NextWorkoutCard
           name={mockNextWorkout.name}
-          exercises={mockNextWorkout.exercises}
           estimatedDuration={mockNextWorkout.estimatedDuration}
           currentDay={mockNextWorkout.currentDay}
           totalDays={mockNextWorkout.totalDays}
-          exercisePreview={mockNextWorkout.exercisePreview}
-          moreExercises={mockNextWorkout.moreExercises}
+          allExercises={mockNextWorkout.allExercises}
           onStartWorkout={handleStartWorkout}
         />
 

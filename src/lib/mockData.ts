@@ -14,16 +14,16 @@ export const mockNextWorkout = {
   id: '1',
   name: 'Pull Day',
   programName: 'Push Pull Legs',
-  exercises: 5,
   estimatedDuration: 60,
   currentDay: 5,
   totalDays: 6,
-  exercisePreview: [
-    { name: 'Weighted Pull-ups', sets: 2 },
-    { name: 'Barbell Rows', sets: 2 },
-    { name: 'Face Pulls', sets: 2 },
+  allExercises: [
+    { name: 'Weighted Pull-ups', sets: 3 },
+    { name: 'Barbell Rows', sets: 4 },
+    { name: 'Face Pulls', sets: 3 },
+    { name: 'Bicep Curls', sets: 3 },
+    { name: 'Hammer Curls', sets: 3 },
   ],
-  moreExercises: 2,
 }
 
 export const mockWeeklyStats = {
