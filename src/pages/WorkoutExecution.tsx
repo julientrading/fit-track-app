@@ -5,7 +5,7 @@ import { ExerciseInfo } from '@/components/features/workout/ExerciseInfo'
 import { CurrentSetInfo } from '@/components/features/workout/CurrentSetInfo'
 import { RestTimerModal } from '@/components/features/workout/RestTimerModal'
 import { LogPerformance } from '@/components/features/workout/LogPerformance'
-import { Button } from '@/components/ui'
+import { Button, Toast } from '@/components/ui'
 import { useAuthStore } from '@/stores/authStore'
 import {
   getWorkoutDayById,
@@ -55,6 +55,8 @@ export const WorkoutExecution = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [showRestTimer, setShowRestTimer] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [toastType, setToastType] = useState<'success' | 'info' | 'celebration'>('success')
 
   // Load workout data on mount
   useEffect(() => {
@@ -144,6 +146,21 @@ export const WorkoutExecution = () => {
   const getCurrentSet = () => {
     const exercise = getCurrentExercise()
     return exercise?.sets[currentSetIndex]
+  }
+
+  // Calculate total sets across all exercises
+  const getTotalSets = () => {
+    return exercises.reduce((total, exercise) => total + exercise.sets.length, 0)
+  }
+
+  // Calculate current global set index (0-based)
+  const getCurrentSetGlobal = () => {
+    let setIndex = 0
+    for (let i = 0; i < currentExerciseIndex; i++) {
+      setIndex += exercises[i].sets.length
+    }
+    setIndex += currentSetIndex
+    return setIndex
   }
 
   // Get next set preview for rest timer
@@ -298,12 +315,19 @@ export const WorkoutExecution = () => {
     // Check if there's another set in current exercise
     if (nextSetIndex < currentExercise.sets.length) {
       setCurrentSetIndex(nextSetIndex)
+      // Show toast for next set in same exercise
+      setToastMessage(`Set ${nextSetIndex + 1} - Let's go!`)
+      setToastType('success')
     } else {
       // Move to next exercise
       const nextExerciseIndex = currentExerciseIndex + 1
       if (nextExerciseIndex < exercises.length) {
+        const nextExercise = exercises[nextExerciseIndex]
         setCurrentExerciseIndex(nextExerciseIndex)
         setCurrentSetIndex(0)
+        // Show celebration toast for completing exercise
+        setToastMessage(`Exercise Complete! Moving to ${nextExercise.exercise.name}`)
+        setToastType('celebration')
       } else {
         // Workout complete!
         handleFinish()
@@ -397,11 +421,23 @@ export const WorkoutExecution = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setToastMessage(null)}
+        />
+      )}
+
       {/* Workout Header */}
       <WorkoutHeader
         workoutName={workoutDay.name}
         currentExercise={currentExerciseIndex}
         totalExercises={exercises.length}
+        currentExerciseName={currentExercise.exercise.name}
+        currentSetGlobal={getCurrentSetGlobal()}
+        totalSets={getTotalSets()}
         onPause={handlePause}
         onFinish={handleFinish}
       />

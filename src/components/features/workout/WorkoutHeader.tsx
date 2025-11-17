@@ -6,6 +6,9 @@ interface WorkoutHeaderProps {
   workoutName: string
   currentExercise: number
   totalExercises: number
+  currentExerciseName: string
+  currentSetGlobal: number // Which set overall (e.g., 5 out of 7 total)
+  totalSets: number // Total sets across all exercises
   onPause?: () => void
   onFinish?: () => void
 }
@@ -14,6 +17,9 @@ export const WorkoutHeader = ({
   workoutName,
   currentExercise,
   totalExercises,
+  currentExerciseName,
+  currentSetGlobal,
+  totalSets,
   onPause,
   onFinish,
 }: WorkoutHeaderProps) => {
@@ -51,37 +57,36 @@ export const WorkoutHeader = ({
         </div>
       </div>
 
-      {/* Progress Dots */}
-      <div className="flex items-center gap-2 justify-center">
-        {Array.from({ length: totalExercises }).map((_, index) => {
-          const isCompleted = index < currentExercise
-          const isCurrent = index === currentExercise
-          const isUpcoming = index > currentExercise
+      {/* Progress Dots - One dot per set */}
+      <div className="flex items-center gap-1.5 justify-center flex-wrap px-4">
+        {Array.from({ length: totalSets }).map((_, index) => {
+          const isCompleted = index < currentSetGlobal
+          const isCurrent = index === currentSetGlobal
 
           return (
             <div key={index} className="flex items-center">
               {/* Dot */}
               <div
-                className={`rounded-full transition-all ${
+                className={`rounded-full transition-all duration-300 ${
                   isCurrent
-                    ? 'w-4 h-4 bg-white ring-4 ring-white/50'
+                    ? 'w-3 h-3 bg-white ring-2 ring-white/50 scale-110'
                     : isCompleted
-                      ? 'w-3 h-3 bg-white'
-                      : 'w-3 h-3 bg-white/30'
+                      ? 'w-2.5 h-2.5 bg-white'
+                      : 'w-2.5 h-2.5 bg-white/30'
                 }`}
               />
               {/* Line connector (except after last dot) */}
-              {index < totalExercises - 1 && (
+              {index < totalSets - 1 && (
                 <div
-                  className={`w-8 h-0.5 ${isCompleted ? 'bg-white' : 'bg-white/30'}`}
+                  className={`w-6 h-0.5 transition-colors duration-300 ${isCompleted ? 'bg-white' : 'bg-white/30'}`}
                 />
               )}
             </div>
           )
         })}
       </div>
-      <p className="text-center text-xs mt-2 text-white/80">
-        Exercise {currentExercise + 1} of {totalExercises}
+      <p className="text-center text-sm mt-2 text-white/90 font-semibold">
+        {currentExerciseName} {currentExercise + 1}/{totalExercises}
       </p>
     </div>
   )
