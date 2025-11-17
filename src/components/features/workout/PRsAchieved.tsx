@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 
 interface PersonalRecord {
   exerciseName: string
-  recordType: 'max_weight' | 'max_volume' | 'max_reps'
+  recordType: 'max_weight' | 'max_volume' | 'max_reps' | 'best_time'
   value: string
 }
 
@@ -24,6 +24,8 @@ export function PRsAchieved({ personalRecords }: PRsAchievedProps) {
         return 'Max Volume'
       case 'max_reps':
         return 'Max Reps'
+      case 'best_time':
+        return 'Best Time'
     }
   }
 

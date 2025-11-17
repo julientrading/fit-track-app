@@ -343,6 +343,54 @@ export async function getLastPerformance(
 }
 
 // =====================================================
+// HELPER FUNCTION: Get Workout Details with All Data
+// =====================================================
+
+export async function getWorkoutDetails(workoutLogId: string) {
+  // Fetch workout log
+  const { data: workoutLog, error: workoutError } = await supabase
+    .from('workout_logs')
+    .select('*')
+    .eq('id', workoutLogId)
+    .single()
+
+  if (workoutError) throw new Error(workoutError.message)
+
+  // Fetch exercise logs
+  const exerciseLogs = await getExerciseLogsByWorkout(workoutLogId)
+
+  // Fetch all sets for each exercise log
+  const exerciseLogsWithSets = await Promise.all(
+    exerciseLogs.map(async (exerciseLog) => {
+      const sets = await getSetsByExerciseLog(exerciseLog.id)
+      return {
+        ...exerciseLog,
+        sets,
+      }
+    })
+  )
+
+  // Fetch PRs achieved in this workout (within the workout time range)
+  const { data: prs, error: prError } = await supabase
+    .from('personal_records')
+    .select(`
+      *,
+      exercise:exercises(name)
+    `)
+    .eq('user_id', workoutLog.user_id)
+    .gte('achieved_at', workoutLog.started_at)
+    .order('achieved_at', { ascending: false })
+
+  if (prError) throw new Error(prError.message)
+
+  return {
+    workoutLog,
+    exerciseLogs: exerciseLogsWithSets,
+    personalRecords: prs || [],
+  }
+}
+
+// =====================================================
 // STATS QUERIES
 // =====================================================
 
