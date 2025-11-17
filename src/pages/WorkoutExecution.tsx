@@ -343,6 +343,8 @@ export const WorkoutExecution = () => {
   const handleRestTimerClose = () => {
     setShowRestTimer(false)
     moveToNextSet()
+    // Scroll to top so user can see the workout header and next set
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleRestTimerComplete = () => {
