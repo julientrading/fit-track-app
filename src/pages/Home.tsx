@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { DashboardHeader } from '@/components/layout/DashboardHeader'
 import { BottomNavigation } from '@/components/layout/BottomNavigation'
 import { NextWorkoutCard } from '@/components/features/workout/NextWorkoutCard'
@@ -13,8 +14,10 @@ import {
 } from '@/lib/mockData'
 
 export const Home = () => {
+  const navigate = useNavigate()
+
   const handleStartWorkout = () => {
-    alert('Starting workout! (This will navigate to workout execution page)')
+    navigate('/workout/1') // Navigate to workout execution
   }
 
   const handleViewAllActivity = () => {
