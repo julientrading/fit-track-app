@@ -41,6 +41,7 @@ export const Home = () => {
   useEffect(() => {
     if (!userProfile) {
       console.log('[Home] No user profile, waiting...')
+      setIsLoading(false)
       return
     }
 
@@ -48,6 +49,7 @@ export const Home = () => {
       // Guard against double loading (React Strict Mode)
       if (isInitializing.current || hasInitialized.current) {
         console.log('[Home] Dashboard already loading or loaded, skipping...')
+        setIsLoading(false)
         return
       }
 
@@ -101,6 +103,7 @@ export const Home = () => {
         console.error('[Home] Failed to load dashboard data:', error)
         isInitializing.current = false
       } finally {
+        console.log('[Home] Setting isLoading to false')
         setIsLoading(false)
       }
     }
