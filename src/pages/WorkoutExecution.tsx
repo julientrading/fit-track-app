@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { WorkoutHeader } from '@/components/features/workout/WorkoutHeader'
 import { ExerciseInfo } from '@/components/features/workout/ExerciseInfo'
 import { CurrentSetInfo } from '@/components/features/workout/CurrentSetInfo'
@@ -8,6 +9,8 @@ import { Button } from '@/components/ui'
 import { mockWorkoutExecution } from '@/lib/mockData'
 
 export const WorkoutExecution = () => {
+  const navigate = useNavigate()
+  const { id } = useParams()
   const [workout] = useState(mockWorkoutExecution)
   const [showRestTimer, setShowRestTimer] = useState(false)
   const currentExercise = workout.exercises[workout.currentExerciseIndex]
@@ -88,7 +91,8 @@ export const WorkoutExecution = () => {
   }
 
   const handleFinish = () => {
-    alert('Finish workout early?')
+    // TODO: Save workout data to database before navigating
+    navigate(`/workout/${id}/complete`)
   }
 
   const handleWatchVideo = () => {

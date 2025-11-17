@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { Home } from './pages/Home'
 import { WorkoutExecution } from './pages/WorkoutExecution'
+import { WorkoutComplete } from './pages/WorkoutComplete'
 
 export const router = createBrowserRouter([
   {
@@ -10,6 +11,10 @@ export const router = createBrowserRouter([
   {
     path: '/workout/:id',
     element: <WorkoutExecution />,
+  },
+  {
+    path: '/workout/:id/complete',
+    element: <WorkoutComplete />,
   },
   // Routes will be added progressively:
   // {
