@@ -50,8 +50,8 @@ export function WorkoutSummaryCard({
 
   return (
     <Card>
-      <CardContent className="p-6">
-        <div className="grid grid-cols-2 gap-4">
+      <CardContent className="p-4">
+        <div className="grid grid-cols-2 gap-3">
           {stats.map((stat) => {
             const Icon = stat.icon
             return (

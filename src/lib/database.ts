@@ -170,17 +170,79 @@ export async function updateWorkoutLog(
 }
 
 export async function completeWorkout(workoutLogId: string): Promise<WorkoutLog> {
+  // First, get the workout details to calculate stats
+  const { workoutLog, exerciseLogs } = await getWorkoutDetails(workoutLogId)
+
+  // Calculate stats
+  let totalSets = 0
+  let totalReps = 0
+  let totalVolume = 0
+
+  exerciseLogs.forEach((exerciseLog) => {
+    exerciseLog.sets.forEach((set) => {
+      if (set.completed) {
+        totalSets++
+        totalReps += set.reps || 0
+        totalVolume += (set.weight || 0) * (set.reps || 0)
+      }
+    })
+  })
+
+  // Calculate duration
+  const startTime = new Date(workoutLog.started_at).getTime()
+  const endTime = new Date().getTime()
+  const durationSeconds = Math.floor((endTime - startTime) / 1000)
+
+  // Calculate XP
+  // Formula: 50 base + 10 per set + 2 per rep + 1 per 100 volume units
+  const baseXP = 50
+  const setsXP = totalSets * 10
+  const repsXP = totalReps * 2
+  const volumeXP = Math.floor(totalVolume / 100)
+  const totalXP = baseXP + setsXP + repsXP + volumeXP
+
+  console.log('💰 Calculating XP:', { baseXP, setsXP, repsXP, volumeXP, totalXP })
+
+  // Update workout log with completion data
   const { data, error } = await supabase
     .from('workout_logs')
     .update({
       status: 'completed',
       completed_at: new Date().toISOString(),
+      duration_seconds: durationSeconds,
+      total_sets: totalSets,
+      total_reps: totalReps,
+      total_volume: totalVolume,
+      xp_earned: totalXP,
     })
     .eq('id', workoutLogId)
     .select()
     .single()
 
   if (error) throw new Error(error.message)
+
+  // Update user's total XP
+  const { error: userError } = await supabase.rpc('increment', {
+    row_id: workoutLog.user_id,
+    x: totalXP,
+  })
+
+  // If increment RPC doesn't exist, update directly
+  if (userError) {
+    const { data: userData } = await supabase
+      .from('users')
+      .select('xp')
+      .eq('id', workoutLog.user_id)
+      .single()
+
+    if (userData) {
+      await supabase
+        .from('users')
+        .update({ xp: (userData.xp || 0) + totalXP })
+        .eq('id', workoutLog.user_id)
+    }
+  }
+
   return data
 }
 
