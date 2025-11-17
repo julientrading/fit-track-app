@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DashboardHeader } from '@/components/layout/DashboardHeader'
 import { BottomNavigation } from '@/components/layout/BottomNavigation'
@@ -26,6 +26,11 @@ import {
 export const Home = () => {
   const navigate = useNavigate()
   const { userProfile } = useAuthStore()
+
+  // Ref to prevent double loading in React Strict Mode
+  const isInitializing = useRef(false)
+  const hasInitialized = useRef(false)
+
   const [isLoading, setIsLoading] = useState(true)
   const [activeProgram, setActiveProgram] = useState<any>(null)
   const [nextWorkout, setNextWorkout] = useState<any>(null)
@@ -34,10 +39,21 @@ export const Home = () => {
   const [personalRecords, setPersonalRecords] = useState<any[]>([])
 
   useEffect(() => {
-    if (!userProfile) return
+    if (!userProfile) {
+      console.log('[Home] No user profile, waiting...')
+      return
+    }
 
     const loadDashboardData = async () => {
+      // Guard against double loading (React Strict Mode)
+      if (isInitializing.current || hasInitialized.current) {
+        console.log('[Home] Dashboard already loading or loaded, skipping...')
+        return
+      }
+
       try {
+        isInitializing.current = true
+        console.log('[Home] Loading dashboard data for user:', userProfile.id)
         setIsLoading(true)
 
         // Fetch all dashboard data in parallel
@@ -47,6 +63,8 @@ export const Home = () => {
           getRecentWorkouts(userProfile.id, 5),
           getUserPRs(userProfile.id),
         ])
+
+        console.log('[Home] Dashboard data loaded:', { program, stats, workouts: workouts.length, prs: prs.length })
 
         setActiveProgram(program)
         setWeeklyStats(stats)
@@ -75,8 +93,13 @@ export const Home = () => {
             })
           }
         }
+
+        // Mark as initialized
+        hasInitialized.current = true
+        isInitializing.current = false
       } catch (error) {
-        console.error('Failed to load dashboard data:', error)
+        console.error('[Home] Failed to load dashboard data:', error)
+        isInitializing.current = false
       } finally {
         setIsLoading(false)
       }
