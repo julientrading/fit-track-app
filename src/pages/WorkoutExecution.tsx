@@ -2,18 +2,73 @@ import { useState } from 'react'
 import { WorkoutHeader } from '@/components/features/workout/WorkoutHeader'
 import { ExerciseInfo } from '@/components/features/workout/ExerciseInfo'
 import { CurrentSetInfo } from '@/components/features/workout/CurrentSetInfo'
-import { RestTimer } from '@/components/features/workout/RestTimer'
+import { RestTimerModal } from '@/components/features/workout/RestTimerModal'
 import { LogPerformance } from '@/components/features/workout/LogPerformance'
 import { Button } from '@/components/ui'
 import { mockWorkoutExecution } from '@/lib/mockData'
 
 export const WorkoutExecution = () => {
   const [workout] = useState(mockWorkoutExecution)
+  const [showRestTimer, setShowRestTimer] = useState(false)
   const currentExercise = workout.exercises[workout.currentExerciseIndex]
   const currentSet = currentExercise.sets[currentExercise.currentSetIndex]
 
+  // Get next set preview (could be next set in same exercise or first set of next exercise)
+  const getNextSetPreview = () => {
+    const nextSetIndex = currentExercise.currentSetIndex + 1
+    if (nextSetIndex < currentExercise.sets.length) {
+      // Next set in same exercise
+      const nextSet = currentExercise.sets[nextSetIndex]
+      return {
+        exerciseName: currentExercise.name,
+        setNumber: nextSet.setNumber,
+        totalSets: currentExercise.sets.filter((s) => s.type === 'working').length,
+        targetWeight: nextSet.targetWeight,
+        targetReps: nextSet.targetReps,
+        lastWeight: nextSet.lastWeight,
+        lastReps: nextSet.lastReps,
+        personalRecord: nextSet.personalRecord,
+      }
+    } else {
+      // Next exercise
+      const nextExerciseIndex = workout.currentExerciseIndex + 1
+      if (nextExerciseIndex < workout.exercises.length) {
+        const nextExercise = workout.exercises[nextExerciseIndex]
+        const firstSet = nextExercise.sets[0]
+        return {
+          exerciseName: nextExercise.name,
+          setNumber: firstSet.setNumber,
+          totalSets: nextExercise.sets.filter((s) => s.type === 'working').length,
+          targetWeight: firstSet.targetWeight,
+          targetReps: firstSet.targetReps,
+          lastWeight: firstSet.lastWeight,
+          lastReps: firstSet.lastReps,
+          personalRecord: firstSet.personalRecord,
+        }
+      }
+    }
+    // Fallback if no next set
+    return {
+      exerciseName: 'Workout Complete!',
+      setNumber: 0,
+      totalSets: 0,
+      targetWeight: 0,
+      targetReps: 0,
+    }
+  }
+
   const handleCompleteSet = () => {
-    alert('Set completed! (This will move to next set)')
+    setShowRestTimer(true)
+  }
+
+  const handleRestTimerClose = () => {
+    setShowRestTimer(false)
+    // Here we would move to the next set/exercise
+    alert('Moving to next set/exercise...')
+  }
+
+  const handleRestTimerComplete = () => {
+    alert('Rest complete! Ready for next set.')
   }
 
   const handleSkipExercise = () => {
@@ -40,10 +95,6 @@ export const WorkoutExecution = () => {
     alert('Watch form video')
   }
 
-  const handleTimerComplete = () => {
-    alert('Rest timer complete! Time for next set.')
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Workout Header */}
@@ -55,8 +106,8 @@ export const WorkoutExecution = () => {
         onFinish={handleFinish}
       />
 
-      {/* Main Content */}
-      <div className="pb-24 px-4 py-6">
+      {/* Main Content - max-width for desktop/tablet */}
+      <div className="max-w-4xl mx-auto pb-24 px-4 py-6">
         {/* Exercise Info */}
         <ExerciseInfo
           name={currentExercise.name}
@@ -77,12 +128,6 @@ export const WorkoutExecution = () => {
           lastReps={currentSet.lastReps}
           personalRecord={currentSet.personalRecord}
           unit="lbs"
-        />
-
-        {/* Rest Timer */}
-        <RestTimer
-          defaultTime={currentExercise.restTime}
-          onTimerComplete={handleTimerComplete}
         />
 
         {/* Log Performance */}
@@ -126,6 +171,15 @@ export const WorkoutExecution = () => {
           + Add Note for This Set
         </button>
       </div>
+
+      {/* Rest Timer Modal - appears after completing a set */}
+      <RestTimerModal
+        isOpen={showRestTimer}
+        onClose={handleRestTimerClose}
+        restTime={currentExercise.restTime}
+        nextSetPreview={getNextSetPreview()}
+        onComplete={handleRestTimerComplete}
+      />
     </div>
   )
 }

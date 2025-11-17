@@ -53,18 +53,18 @@ export const LogPerformance = ({
         {/* Weight Input */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">Weight</label>
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <input
               type="number"
               value={weight || ''}
               onChange={(e) => handleWeightChange(e.target.value)}
               placeholder="0"
-              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg text-2xl font-bold text-center focus:border-primary-purple-500 focus:outline-none"
+              className="flex-1 min-w-0 px-4 py-3 border-2 border-gray-300 rounded-lg text-2xl font-bold text-center focus:border-primary-purple-500 focus:outline-none"
             />
             <select
               value={currentUnit}
               onChange={(e) => handleUnitChange(e.target.value as 'lbs' | 'kg')}
-              className="px-4 py-3 border-2 border-gray-300 rounded-lg font-semibold focus:border-primary-purple-500 focus:outline-none"
+              className="w-20 px-2 py-3 border-2 border-gray-300 rounded-lg font-semibold text-center focus:border-primary-purple-500 focus:outline-none"
             >
               <option value="lbs">lbs</option>
               <option value="kg">kg</option>
