@@ -1,15 +1,36 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Settings, LogOut, Award, TrendingUp, Flame, Dumbbell, Edit2 } from 'lucide-react'
+import { Settings, LogOut, Award, TrendingUp, Flame, Dumbbell, Edit2, Ruler, Plus, ChevronRight } from 'lucide-react'
 import { BottomNavigation } from '@/components/layout/BottomNavigation'
 import { useAuthStore } from '@/stores/authStore'
-import { getWeeklyStats, getUserPRs } from '@/lib/database'
+import { getWeeklyStats, getUserPRs, getLatestBodyMeasurements } from '@/lib/database'
+import type { BodyMeasurement } from '@/types/database'
+
+// Measurement type labels
+const MEASUREMENT_LABELS: Record<BodyMeasurement['measurement_type'], string> = {
+  weight: 'Weight',
+  neck: 'Neck',
+  shoulders: 'Shoulders',
+  chest: 'Chest',
+  biceps_left: 'Biceps (L)',
+  biceps_right: 'Biceps (R)',
+  forearms_left: 'Forearms (L)',
+  forearms_right: 'Forearms (R)',
+  waist: 'Waist',
+  hips: 'Hips',
+  thighs_left: 'Thighs (L)',
+  thighs_right: 'Thighs (R)',
+  calves_left: 'Calves (L)',
+  calves_right: 'Calves (R)',
+  body_fat_percentage: 'Body Fat %',
+}
 
 export function Profile() {
   const navigate = useNavigate()
   const { authUser, userProfile, logout } = useAuthStore()
   const [stats, setStats] = useState<any>(null)
   const [prs, setPrs] = useState<any[]>([])
+  const [bodyMetrics, setBodyMetrics] = useState<BodyMeasurement[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -18,12 +39,14 @@ export function Profile() {
     const loadStats = async () => {
       try {
         setIsLoading(true)
-        const [weeklyStats, userPRs] = await Promise.all([
+        const [weeklyStats, userPRs, latestMeasurements] = await Promise.all([
           getWeeklyStats(userProfile.id),
           getUserPRs(userProfile.id),
+          getLatestBodyMeasurements(userProfile.id, 3),
         ])
         setStats(weeklyStats)
         setPrs(userPRs)
+        setBodyMetrics(latestMeasurements)
       } catch (error) {
         console.error('[Profile] Failed to load stats:', error)
       } finally {
@@ -158,6 +181,80 @@ export function Profile() {
             </div>
           </div>
         )}
+
+        {/* Body Metrics Widget */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900">Body Metrics</h3>
+            <button
+              onClick={() => navigate('/profile/body-metrics')}
+              className="text-sm font-semibold text-primary-purple-600 hover:text-primary-purple-700 flex items-center gap-1"
+            >
+              View All
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {isLoading ? (
+            <div className="bg-white rounded-2xl p-5 border-2 border-gray-200 animate-pulse">
+              <div className="h-20 bg-gray-200 rounded"></div>
+            </div>
+          ) : bodyMetrics.length === 0 ? (
+            <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 text-center">
+              <Ruler className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <h4 className="font-bold text-gray-900 mb-2">Track Your Progress</h4>
+              <p className="text-sm text-gray-600 mb-4">
+                Log body measurements to track changes over time
+              </p>
+              <button
+                onClick={() => navigate('/profile/body-metrics')}
+                className="bg-gradient-primary text-white px-6 py-2 rounded-xl font-semibold hover:opacity-90 transition inline-flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Log Measurement
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl p-5 border-2 border-gray-200">
+              <div className="space-y-3">
+                {bodyMetrics.map((metric) => {
+                  // Calculate change (this is simplified - in a real app you'd compare to previous)
+                  const formatValue = `${metric.value} ${metric.unit}`
+
+                  return (
+                    <div
+                      key={metric.id}
+                      className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+                    >
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {MEASUREMENT_LABELS[metric.measurement_type]}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {new Date(metric.measured_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-black text-gray-900">{formatValue}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <button
+                onClick={() => navigate('/profile/body-metrics')}
+                className="w-full mt-4 bg-purple-50 text-primary-purple-600 py-3 rounded-xl font-semibold hover:bg-purple-100 transition flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Log Measurement
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Settings & Actions */}
         <div className="mt-8 space-y-3">

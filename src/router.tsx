@@ -4,6 +4,7 @@ import { WorkoutExecution } from './pages/WorkoutExecution'
 import { WorkoutComplete } from './pages/WorkoutComplete'
 import { Profile } from './pages/Profile'
 import { EditProfile } from './pages/EditProfile'
+import { BodyMetrics } from './pages/BodyMetrics'
 import { Settings } from './pages/Settings'
 import { ExerciseLibrary } from './pages/ExerciseLibrary'
 import { ExerciseDetail } from './pages/ExerciseDetail'
@@ -62,6 +63,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <EditProfile />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/profile/body-metrics',
+    element: (
+      <ProtectedRoute>
+        <BodyMetrics />
       </ProtectedRoute>
     ),
   },

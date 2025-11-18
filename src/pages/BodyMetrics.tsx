@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   TrendingUp,
@@ -8,6 +8,7 @@ import {
   Plus,
   Trash2,
   Ruler,
+  X,
 } from 'lucide-react'
 import {
   LineChart,
@@ -19,7 +20,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { useAuthStore } from '@/stores/authStore'
-import { getBodyMeasurements, deleteBodyMeasurement } from '@/lib/database'
+import { getBodyMeasurements, deleteBodyMeasurement, createBodyMeasurement } from '@/lib/database'
 import type { BodyMeasurement } from '@/types/database'
 
 type TimePeriod = '1w' | '1m' | '3m' | '6m' | '1y' | 'all'
@@ -59,6 +60,13 @@ export function BodyMetrics() {
   const [isLoading, setIsLoading] = useState(true)
   const [showMetricDropdown, setShowMetricDropdown] = useState(false)
   const [showLogModal, setShowLogModal] = useState(false)
+
+  // Form state
+  const [formType, setFormType] = useState<MeasurementType>('weight')
+  const [formValue, setFormValue] = useState('')
+  const [formUnit, setFormUnit] = useState<'lbs' | 'kg' | 'in' | 'cm' | '%'>('lbs')
+  const [formNotes, setFormNotes] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Load measurements
   useEffect(() => {
@@ -172,6 +180,56 @@ export function BodyMetrics() {
       alert('Failed to delete measurement')
     }
   }
+
+  // Handle log measurement
+  const handleLogMeasurement = async (e: FormEvent) => {
+    e.preventDefault()
+
+    if (!userProfile || !formValue) {
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const newMeasurement = await createBodyMeasurement({
+        user_id: userProfile.id,
+        measurement_type: formType,
+        value: parseFloat(formValue),
+        unit: formUnit,
+        notes: formNotes.trim() || null,
+        measured_at: new Date().toISOString(),
+      })
+
+      // Add to measurements list
+      setMeasurements((prev) => [newMeasurement, ...prev])
+
+      // Reset form
+      setFormValue('')
+      setFormNotes('')
+      setShowLogModal(false)
+
+      // Switch to the newly logged metric
+      setSelectedMetric(formType)
+    } catch (error) {
+      console.error('Failed to log measurement:', error)
+      alert('Failed to log measurement. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Update unit when measurement type changes
+  useEffect(() => {
+    if (formType === 'weight') {
+      setFormUnit(userProfile?.preferred_unit || 'lbs')
+    } else if (formType === 'body_fat_percentage') {
+      setFormUnit('%')
+    } else {
+      // Default to inches for body measurements
+      setFormUnit('in')
+    }
+  }, [formType, userProfile])
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -419,18 +477,114 @@ export function BodyMetrics() {
         <Plus className="w-6 h-6" />
       </button>
 
-      {/* Log Modal - Placeholder for now */}
+      {/* Log Measurement Modal */}
       {showLogModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Log Measurement</h2>
-            <p className="text-gray-600 mb-4">Measurement logging modal will be implemented next</p>
-            <button
-              onClick={() => setShowLogModal(false)}
-              className="w-full bg-gradient-primary text-white py-3 rounded-xl font-semibold hover:opacity-90 transition"
-            >
-              Close
-            </button>
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Log Measurement</h2>
+              <button
+                onClick={() => setShowLogModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleLogMeasurement} className="space-y-4">
+              {/* Measurement Type */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Measurement Type
+                </label>
+                <select
+                  value={formType}
+                  onChange={(e) => setFormType(e.target.value as MeasurementType)}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-purple-400 focus:outline-none transition"
+                  required
+                >
+                  {(Object.keys(MEASUREMENT_LABELS) as MeasurementType[]).map((type) => (
+                    <option key={type} value={type}>
+                      {MEASUREMENT_LABELS[type]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Value & Unit */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Value
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={formValue}
+                    onChange={(e) => setFormValue(e.target.value)}
+                    placeholder="Enter value"
+                    className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-purple-400 focus:outline-none transition"
+                    required
+                  />
+                  <select
+                    value={formUnit}
+                    onChange={(e) => setFormUnit(e.target.value as any)}
+                    className="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-purple-400 focus:outline-none transition"
+                  >
+                    {formType === 'weight' && (
+                      <>
+                        <option value="lbs">lbs</option>
+                        <option value="kg">kg</option>
+                      </>
+                    )}
+                    {formType === 'body_fat_percentage' && (
+                      <option value="%">%</option>
+                    )}
+                    {formType !== 'weight' && formType !== 'body_fat_percentage' && (
+                      <>
+                        <option value="in">in</option>
+                        <option value="cm">cm</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Notes (Optional)
+                </label>
+                <textarea
+                  value={formNotes}
+                  onChange={(e) => setFormNotes(e.target.value)}
+                  placeholder="Add any notes..."
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-purple-400 focus:outline-none transition resize-none"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowLogModal(false)}
+                  className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 transition"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-gradient-primary text-white px-4 py-3 rounded-xl font-semibold hover:opacity-90 transition disabled:opacity-50"
+                  disabled={isSubmitting || !formValue}
+                >
+                  {isSubmitting ? 'Logging...' : 'Log Measurement'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
