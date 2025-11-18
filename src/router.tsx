@@ -3,6 +3,7 @@ import { Home } from './pages/Home'
 import { WorkoutExecution } from './pages/WorkoutExecution'
 import { WorkoutComplete } from './pages/WorkoutComplete'
 import { WorkoutDetail } from './pages/WorkoutDetail'
+import { ProgramBuilder } from './pages/ProgramBuilder'
 import { Profile } from './pages/Profile'
 import { EditProfile } from './pages/EditProfile'
 import { BodyMetrics } from './pages/BodyMetrics'
@@ -56,6 +57,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <WorkoutDetail />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/program/create',
+    element: (
+      <ProtectedRoute>
+        <ProgramBuilder />
       </ProtectedRoute>
     ),
   },

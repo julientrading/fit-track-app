@@ -73,7 +73,7 @@ export async function getActiveProgram(userId: string): Promise<Program | null> 
 }
 
 export async function getProgramById(programId: string): Promise<Program | null> {
-  const { data, error } = await supabase
+  const { data, error} = await supabase
     .from('programs')
     .select('*')
     .eq('id', programId)
@@ -81,6 +81,78 @@ export async function getProgramById(programId: string): Promise<Program | null>
 
   if (error) throw new Error(error.message)
   return data
+}
+
+export async function createProgram(programData: {
+  user_id: string
+  name: string
+  description?: string
+  goal?: string
+  difficulty?: 'beginner' | 'intermediate' | 'advanced'
+  duration_weeks?: number
+  days_per_week?: number
+  is_active?: boolean
+}): Promise<Program> {
+  const { data, error } = await supabase
+    .from('programs')
+    .insert({
+      user_id: programData.user_id,
+      name: programData.name,
+      description: programData.description || null,
+      goal: programData.goal || null,
+      difficulty: programData.difficulty || null,
+      duration_weeks: programData.duration_weeks || null,
+      days_per_week: programData.days_per_week || null,
+      is_active: programData.is_active || false,
+      is_public: false,
+      is_template: false,
+    })
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function updateProgram(
+  programId: string,
+  updates: Partial<Program>
+): Promise<Program> {
+  const { data, error } = await supabase
+    .from('programs')
+    .update(updates)
+    .eq('id', programId)
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function deleteProgram(programId: string): Promise<void> {
+  const { error } = await supabase
+    .from('programs')
+    .delete()
+    .eq('id', programId)
+
+  if (error) throw new Error(error.message)
+}
+
+export async function setActiveProgram(userId: string, programId: string): Promise<void> {
+  // First, deactivate all programs for this user
+  await supabase
+    .from('programs')
+    .update({ is_active: false })
+    .eq('user_id', userId)
+
+  // Then activate the selected program
+  const { error } = await supabase
+    .from('programs')
+    .update({ is_active: true })
+    .eq('id', programId)
+    .eq('user_id', userId)
+
+  if (error) throw new Error(error.message)
 }
 
 // =====================================================
@@ -109,6 +181,51 @@ export async function getWorkoutDayById(workoutDayId: string): Promise<WorkoutDa
   return data
 }
 
+export async function createWorkoutDay(workoutDayData: {
+  program_id: string
+  name: string
+  description?: string
+  day_number: number
+}): Promise<WorkoutDay> {
+  const { data, error } = await supabase
+    .from('workout_days')
+    .insert({
+      program_id: workoutDayData.program_id,
+      name: workoutDayData.name,
+      description: workoutDayData.description || null,
+      day_number: workoutDayData.day_number,
+    })
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function updateWorkoutDay(
+  workoutDayId: string,
+  updates: Partial<WorkoutDay>
+): Promise<WorkoutDay> {
+  const { data, error } = await supabase
+    .from('workout_days')
+    .update(updates)
+    .eq('id', workoutDayId)
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function deleteWorkoutDay(workoutDayId: string): Promise<void> {
+  const { error } = await supabase
+    .from('workout_days')
+    .delete()
+    .eq('id', workoutDayId)
+
+  if (error) throw new Error(error.message)
+}
+
 // =====================================================
 // WORKOUT DAY EXERCISE QUERIES
 // =====================================================
@@ -125,6 +242,60 @@ export async function getWorkoutDayExercises(workoutDayId: string) {
 
   if (error) throw new Error(error.message)
   return data || []
+}
+
+export async function createWorkoutDayExercise(exerciseData: {
+  workout_day_id: string
+  exercise_id: string
+  exercise_order: number
+  sets: any[]
+  rest_time: number
+  notes?: string
+}) {
+  const { data, error } = await supabase
+    .from('workout_day_exercises')
+    .insert({
+      workout_day_id: exerciseData.workout_day_id,
+      exercise_id: exerciseData.exercise_id,
+      exercise_order: exerciseData.exercise_order,
+      sets: exerciseData.sets,
+      rest_time: exerciseData.rest_time,
+      notes: exerciseData.notes || null,
+    })
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function updateWorkoutDayExercise(
+  exerciseId: string,
+  updates: {
+    exercise_order?: number
+    sets?: any[]
+    rest_time?: number
+    notes?: string
+  }
+) {
+  const { data, error } = await supabase
+    .from('workout_day_exercises')
+    .update(updates)
+    .eq('id', exerciseId)
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function deleteWorkoutDayExercise(exerciseId: string): Promise<void> {
+  const { error } = await supabase
+    .from('workout_day_exercises')
+    .delete()
+    .eq('id', exerciseId)
+
+  if (error) throw new Error(error.message)
 }
 
 // =====================================================

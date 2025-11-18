@@ -191,7 +191,7 @@ export const Home = () => {
               Create a workout program to get started with your fitness journey!
             </p>
             <button
-              onClick={() => alert('Program creation coming soon!')}
+              onClick={() => navigate('/program/create')}
               className="px-6 py-3 bg-gradient-primary text-white font-semibold rounded-xl hover:opacity-90 transition"
             >
               Create Program
