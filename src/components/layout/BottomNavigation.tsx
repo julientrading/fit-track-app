@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Home, TrendingUp, BookOpen, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -24,9 +25,9 @@ export const BottomNavigation = ({ active = 'home' }: BottomNavigationProps) => 
             const isActive = active === item.id
 
             return (
-              <a
+              <Link
                 key={item.id}
-                href={item.href}
+                to={item.href}
                 className={cn(
                   'flex-1 py-4 flex flex-col items-center gap-1 transition',
                   isActive
@@ -36,7 +37,7 @@ export const BottomNavigation = ({ active = 'home' }: BottomNavigationProps) => 
               >
                 <Icon className="w-6 h-6" />
                 <span className="text-xs font-semibold">{item.label}</span>
-              </a>
+              </Link>
             )
           })}
         </div>

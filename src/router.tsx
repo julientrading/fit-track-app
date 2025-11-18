@@ -5,6 +5,8 @@ import { WorkoutComplete } from './pages/WorkoutComplete'
 import { Profile } from './pages/Profile'
 import { EditProfile } from './pages/EditProfile'
 import { Settings } from './pages/Settings'
+import { ExerciseLibrary } from './pages/ExerciseLibrary'
+import { ExerciseDetail } from './pages/ExerciseDetail'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -65,6 +67,22 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <Settings />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/library',
+    element: (
+      <ProtectedRoute>
+        <ExerciseLibrary />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/library/exercise/:id',
+    element: (
+      <ProtectedRoute>
+        <ExerciseDetail />
       </ProtectedRoute>
     ),
   },

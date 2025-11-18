@@ -481,6 +481,17 @@ export async function getAllAvailableExercises(userId: string): Promise<Exercise
   return data || []
 }
 
+export async function getExerciseById(exerciseId: string): Promise<Exercise | null> {
+  const { data, error } = await supabase
+    .from('exercises')
+    .select('*')
+    .eq('id', exerciseId)
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
 // =====================================================
 // HELPER FUNCTION: Get Last Performance
 // =====================================================
