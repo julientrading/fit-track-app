@@ -92,6 +92,7 @@ export async function createProgram(programData: {
   duration_weeks?: number
   days_per_week?: number
   is_active?: boolean
+  is_draft?: boolean
 }): Promise<Program> {
   const { data, error } = await supabase
     .from('programs')
@@ -106,6 +107,7 @@ export async function createProgram(programData: {
       is_active: programData.is_active || false,
       is_public: false,
       is_template: false,
+      is_draft: programData.is_draft || false,
     })
     .select()
     .single()
@@ -952,6 +954,52 @@ export async function getFrequentlyUsedExercises(userId: string, limit = 10): Pr
     .sort((a, b) => b.count - a.count)
     .slice(0, limit)
     .map((item) => item.exercise)
+}
+
+export async function createExercise(exerciseData: {
+  name: string
+  category: 'compound' | 'isolation' | 'cardio' | 'flexibility' | 'other'
+  muscle_groups: string[]
+  equipment?: string[]
+  difficulty?: 'beginner' | 'intermediate' | 'advanced'
+  description?: string
+  instructions?: string
+  is_public?: boolean
+  created_by: string
+  tracks_weight?: boolean
+  tracks_reps?: boolean
+  tracks_time?: boolean
+  tracks_distance?: boolean
+}): Promise<Exercise> {
+  console.log('[DB] Creating exercise with data:', exerciseData)
+
+  const { data, error } = await supabase
+    .from('exercises')
+    .insert({
+      name: exerciseData.name,
+      category: exerciseData.category,
+      muscle_groups: exerciseData.muscle_groups,
+      equipment: exerciseData.equipment || [],
+      difficulty: exerciseData.difficulty || null,
+      description: exerciseData.description || null,
+      instructions: exerciseData.instructions || null,
+      is_public: exerciseData.is_public ?? false,
+      created_by: exerciseData.created_by,
+      tracks_weight: exerciseData.tracks_weight ?? true,
+      tracks_reps: exerciseData.tracks_reps ?? true,
+      tracks_time: exerciseData.tracks_time ?? false,
+      tracks_distance: exerciseData.tracks_distance ?? false,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('[DB] Failed to create exercise:', error)
+    throw new Error(`Failed to create exercise: ${error.message}`)
+  }
+
+  console.log('[DB] Exercise created successfully:', data)
+  return data as Exercise
 }
 
 // =====================================================

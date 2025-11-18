@@ -491,6 +491,11 @@ export function ProgramLibrary() {
                         <p className="text-sm text-gray-600 mb-2">{program.description}</p>
                       )}
                       <div className="flex flex-wrap gap-2">
+                        {program.is_draft && (
+                          <span className="inline-block px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded">
+                            DRAFT
+                          </span>
+                        )}
                         {program.difficulty && (
                           <span
                             className={`inline-block px-2 py-1 text-xs font-semibold rounded capitalize ${getDifficultyColor(

@@ -53,6 +53,7 @@ export interface Program {
   is_active: boolean
   is_public: boolean
   is_template: boolean
+  is_draft: boolean
   total_workouts: number
   times_completed: number
   created_at: string

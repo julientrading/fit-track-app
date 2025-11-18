@@ -164,6 +164,11 @@ export function Library() {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-gray-900 mb-1">{program.name}</h3>
                       <div className="flex flex-wrap gap-2 mb-2">
+                        {program.is_draft && (
+                          <span className="inline-block px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded">
+                            DRAFT
+                          </span>
+                        )}
                         {program.difficulty && (
                           <span
                             className={`inline-block px-2 py-1 text-xs font-semibold rounded capitalize ${getDifficultyColor(

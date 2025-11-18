@@ -16,8 +16,8 @@ import {
   createWorkoutDay,
   createWorkoutDayExercise,
   getAllAvailableExercises,
+  createExercise,
 } from '@/lib/database'
-import { supabase } from '@/lib/supabase'
 import type { Exercise } from '@/types/database'
 
 // Types for our builder state
@@ -288,31 +288,34 @@ export function ProgramBuilder() {
 
   // Create new exercise inline
   const handleCreateExercise = async () => {
-    if (!userProfile || !newExerciseName.trim() || !currentEditingDay) return
+    if (!userProfile || !newExerciseName.trim() || !currentEditingDay) {
+      console.log('[ProgramBuilder] Cannot create exercise: missing data')
+      return
+    }
+
+    console.log('[ProgramBuilder] Creating exercise:', {
+      name: newExerciseName.trim(),
+      category: newExerciseCategory,
+      muscle_groups: newExerciseMuscleGroups,
+    })
 
     setIsCreatingExercise(true)
     try {
-      // Create the exercise in the database
-      const { data, error } = await supabase
-        .from('exercises')
-        .insert({
-          name: newExerciseName.trim(),
-          category: newExerciseCategory,
-          muscle_groups: newExerciseMuscleGroups,
-          equipment: [],
-          is_public: false,
-          created_by: userProfile.id,
-          tracks_weight: true,
-          tracks_reps: true,
-          tracks_time: false,
-          tracks_distance: false,
-        })
-        .select()
-        .single()
+      // Create the exercise in the database using the helper function
+      const newExercise = await createExercise({
+        name: newExerciseName.trim(),
+        category: newExerciseCategory,
+        muscle_groups: newExerciseMuscleGroups,
+        equipment: [],
+        is_public: false,
+        created_by: userProfile.id,
+        tracks_weight: true,
+        tracks_reps: true,
+        tracks_time: false,
+        tracks_distance: false,
+      })
 
-      if (error) throw error
-
-      const newExercise = data as Exercise
+      console.log('[ProgramBuilder] Exercise created successfully:', newExercise)
 
       // Add to local exercises list
       setExercises([...exercises, newExercise])
@@ -325,9 +328,9 @@ export function ProgramBuilder() {
       setNewExerciseCategory('compound')
       setNewExerciseMuscleGroups([])
       setShowCreateExercise(false)
-    } catch (error) {
-      console.error('Failed to create exercise:', error)
-      alert('Failed to create exercise. Please try again.')
+    } catch (error: any) {
+      console.error('[ProgramBuilder] Failed to create exercise:', error)
+      alert(`Failed to create exercise: ${error.message || 'Please try again.'}`)
     } finally {
       setIsCreatingExercise(false)
     }
@@ -358,6 +361,7 @@ export function ProgramBuilder() {
         duration_weeks: programBasics.durationWeeks,
         days_per_week: programBasics.daysPerWeek,
         is_active: false,
+        is_draft: false,
       })
 
       // 2. Create workout days
@@ -393,6 +397,69 @@ export function ProgramBuilder() {
     } catch (error) {
       console.error('Failed to save program:', error)
       alert('Failed to save program. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Save draft
+  const handleSaveDraft = async () => {
+    if (!userProfile) return
+
+    // Require at least a program name
+    if (!programBasics.name.trim()) {
+      alert('Please enter a program name before saving draft.')
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      // 1. Create program as draft
+      const program = await createProgram({
+        user_id: userProfile.id,
+        name: programBasics.name,
+        description: programBasics.description,
+        goal: programBasics.goal || undefined,
+        difficulty: programBasics.difficulty || undefined,
+        duration_weeks: programBasics.durationWeeks || undefined,
+        days_per_week: programBasics.daysPerWeek || undefined,
+        is_active: false,
+        is_draft: true,
+      })
+
+      // 2. Create workout days if any exist
+      for (let i = 0; i < workoutDays.length; i++) {
+        const dayData = workoutDays[i]
+        const workoutDay = await createWorkoutDay({
+          program_id: program.id,
+          name: dayData.name,
+          description: dayData.description,
+          day_number: i + 1,
+        })
+
+        // 3. Create workout day exercises if any exist
+        for (let j = 0; j < dayData.exercises.length; j++) {
+          const exercise = dayData.exercises[j]
+          await createWorkoutDayExercise({
+            workout_day_id: workoutDay.id,
+            exercise_id: exercise.exerciseId,
+            exercise_order: j + 1,
+            sets: exercise.sets.map((set) => ({
+              type: set.type,
+              targetWeight: set.targetWeight,
+              targetReps: set.targetReps,
+            })),
+            rest_time: exercise.restTime,
+            notes: exercise.notes,
+          })
+        }
+      }
+
+      alert('Draft saved successfully! You can continue editing it later from the Library.')
+      navigate('/library/programs')
+    } catch (error) {
+      console.error('Failed to save draft:', error)
+      alert('Failed to save draft. Please try again.')
     } finally {
       setIsSaving(false)
     }
@@ -843,6 +910,17 @@ export function ProgramBuilder() {
             </button>
           )}
         </div>
+
+        {/* Save Draft Button */}
+        {currentStep < totalSteps && (
+          <button
+            onClick={handleSaveDraft}
+            disabled={isSaving || !programBasics.name.trim()}
+            className="w-full mt-3 px-6 py-3 rounded-xl border-2 border-gray-300 font-semibold text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSaving ? 'Saving...' : 'Save Draft'}
+          </button>
+        )}
       </div>
 
       {/* Exercise Selection Modal */}
