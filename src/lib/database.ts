@@ -188,6 +188,15 @@ export async function updateWorkoutLog(
   return data
 }
 
+export async function deleteWorkoutLog(workoutLogId: string): Promise<void> {
+  const { error } = await supabase
+    .from('workout_logs')
+    .delete()
+    .eq('id', workoutLogId)
+
+  if (error) throw new Error(error.message)
+}
+
 export async function completeWorkout(workoutLogId: string): Promise<WorkoutLog> {
   // First, get the workout details to calculate stats
   const { workoutLog, exerciseLogs } = await getWorkoutDetails(workoutLogId)
@@ -695,6 +704,98 @@ export async function getWorkoutDetails(workoutLogId: string) {
     exerciseLogs: exerciseLogsWithSets,
     personalRecords: prs || [],
   }
+}
+
+export async function getPreviousWorkoutComparison(
+  userId: string,
+  workoutDayId: string,
+  currentWorkoutLogId: string
+) {
+  // Find the most recent completed workout for the same workout_day_id
+  const { data: previousWorkout, error: workoutError } = await supabase
+    .from('workout_logs')
+    .select('id, completed_at')
+    .eq('user_id', userId)
+    .eq('workout_day_id', workoutDayId)
+    .eq('status', 'completed')
+    .neq('id', currentWorkoutLogId)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (workoutError || !previousWorkout) {
+    return []
+  }
+
+  // Get exercise performance from that previous workout
+  const { data: exerciseData, error: exerciseError } = await supabase
+    .from('sets')
+    .select(`
+      exercise_id,
+      exercise_log:exercise_logs!inner(
+        exercise_name,
+        workout_log_id
+      ),
+      weight,
+      reps
+    `)
+    .eq('exercise_log.workout_log_id', previousWorkout.id)
+    .eq('completed', true)
+
+  if (exerciseError) throw new Error(exerciseError.message)
+
+  // Group by exercise and calculate stats
+  const exerciseStats: Record<string, {
+    exercise_id: string
+    exercise_name: string
+    sets: { weight: number | null; reps: number | null }[]
+  }> = {}
+
+  exerciseData?.forEach((set: any) => {
+    if (!exerciseStats[set.exercise_id]) {
+      exerciseStats[set.exercise_id] = {
+        exercise_id: set.exercise_id,
+        exercise_name: set.exercise_log.exercise_name,
+        sets: [],
+      }
+    }
+    exerciseStats[set.exercise_id].sets.push({
+      weight: set.weight,
+      reps: set.reps,
+    })
+  })
+
+  // Calculate best set and total volume for each exercise
+  return Object.values(exerciseStats).map((exercise) => {
+    const validSets = exercise.sets.filter(s => s.weight && s.reps)
+
+    let bestSetWeight = 0
+    let bestSetReps = 0
+    let totalVolume = 0
+
+    validSets.forEach((set) => {
+      const volume = (set.weight || 0) * (set.reps || 0)
+      totalVolume += volume
+
+      // Best set is the one with highest volume
+      const currentBestVolume = bestSetWeight * bestSetReps
+      if (volume > currentBestVolume) {
+        bestSetWeight = set.weight || 0
+        bestSetReps = set.reps || 0
+      }
+    })
+
+    return {
+      workout_log_id: previousWorkout.id,
+      completed_at: previousWorkout.completed_at,
+      exercise_id: exercise.exercise_id,
+      exercise_name: exercise.exercise_name,
+      best_set_weight: bestSetWeight,
+      best_set_reps: bestSetReps,
+      total_volume: totalVolume,
+      total_sets: exercise.sets.length,
+    }
+  })
 }
 
 // =====================================================

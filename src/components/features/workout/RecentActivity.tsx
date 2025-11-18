@@ -15,9 +15,10 @@ interface Activity {
 interface RecentActivityProps {
   activities: Activity[]
   onViewAll?: () => void
+  onActivityClick?: (activityId: string) => void
 }
 
-export const RecentActivity = ({ activities, onViewAll }: RecentActivityProps) => {
+export const RecentActivity = ({ activities, onViewAll, onActivityClick }: RecentActivityProps) => {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
@@ -31,7 +32,11 @@ export const RecentActivity = ({ activities, onViewAll }: RecentActivityProps) =
       </div>
       <div className="space-y-3">
         {activities.map((activity) => (
-          <div key={activity.id} className="bg-white rounded-xl p-4 shadow-md">
+          <button
+            key={activity.id}
+            onClick={() => onActivityClick?.(activity.id)}
+            className="w-full bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition text-left"
+          >
             <div className="flex items-center justify-between mb-2">
               <div>
                 <h3 className="font-bold text-gray-900">{activity.name}</h3>
@@ -60,7 +65,7 @@ export const RecentActivity = ({ activities, onViewAll }: RecentActivityProps) =
                 ))}
               </div>
             )}
-          </div>
+          </button>
         ))}
       </div>
     </div>

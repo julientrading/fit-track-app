@@ -830,7 +830,7 @@ export function Progress() {
               {completedWorkouts.slice(0, 10).map((workout) => (
                 <button
                   key={workout.id}
-                  onClick={() => navigate(`/workout/${workout.id}/complete`)}
+                  onClick={() => navigate(`/workout-detail/${workout.id}`)}
                   className="w-full bg-white rounded-2xl border-2 border-gray-200 p-4 hover:border-primary-purple-400 hover:bg-purple-50 transition text-left"
                 >
                   <div className="flex items-start gap-3">

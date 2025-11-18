@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import { Home } from './pages/Home'
 import { WorkoutExecution } from './pages/WorkoutExecution'
 import { WorkoutComplete } from './pages/WorkoutComplete'
+import { WorkoutDetail } from './pages/WorkoutDetail'
 import { Profile } from './pages/Profile'
 import { EditProfile } from './pages/EditProfile'
 import { BodyMetrics } from './pages/BodyMetrics'
@@ -47,6 +48,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <WorkoutComplete />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/workout-detail/:workoutId',
+    element: (
+      <ProtectedRoute>
+        <WorkoutDetail />
       </ProtectedRoute>
     ),
   },

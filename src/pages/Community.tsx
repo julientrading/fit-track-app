@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Trophy,
   TrendingUp,
@@ -39,6 +40,7 @@ interface LeaderboardUser {
 }
 
 export function Community() {
+  const navigate = useNavigate()
   const { userProfile } = useAuthStore()
 
   // Refs for React Strict Mode
@@ -187,9 +189,10 @@ export function Community() {
               </div>
             ) : (
               feed.map((workout) => (
-                <div
+                <button
                   key={workout.id}
-                  className="bg-white rounded-2xl border-2 border-gray-200 p-4"
+                  onClick={() => navigate(`/workout-detail/${workout.id}`)}
+                  className="w-full bg-white rounded-2xl border-2 border-gray-200 p-4 hover:border-primary-purple-400 hover:bg-purple-50 transition text-left"
                 >
                   <div className="flex items-start gap-3 mb-3">
                     {/* User Avatar */}
@@ -244,7 +247,7 @@ export function Community() {
                       </div>
                     )}
                   </div>
-                </div>
+                </button>
               ))
             )}
           </div>
