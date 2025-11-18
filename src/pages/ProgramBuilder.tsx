@@ -17,6 +17,7 @@ import {
   createWorkoutDayExercise,
   getAllAvailableExercises,
 } from '@/lib/database'
+import { supabase } from '@/lib/supabase'
 import type { Exercise } from '@/types/database'
 
 // Types for our builder state
@@ -60,6 +61,25 @@ const GOALS = [
   'Athletic Performance',
 ]
 
+const MUSCLE_GROUPS = [
+  'Chest',
+  'Back',
+  'Shoulders',
+  'Arms',
+  'Legs',
+  'Core',
+  'Glutes',
+  'Calves',
+]
+
+const CATEGORIES = [
+  { value: 'compound', label: 'Compound' },
+  { value: 'isolation', label: 'Isolation' },
+  { value: 'cardio', label: 'Cardio' },
+  { value: 'flexibility', label: 'Flexibility' },
+  { value: 'other', label: 'Other' },
+]
+
 export function ProgramBuilder() {
   const navigate = useNavigate()
   const { userProfile } = useAuthStore()
@@ -86,6 +106,13 @@ export function ProgramBuilder() {
   const [isLoadingExercises, setIsLoadingExercises] = useState(false)
   const [showExerciseModal, setShowExerciseModal] = useState(false)
   const [exerciseSearch, setExerciseSearch] = useState('')
+
+  // Exercise creation state
+  const [showCreateExercise, setShowCreateExercise] = useState(false)
+  const [newExerciseName, setNewExerciseName] = useState('')
+  const [newExerciseCategory, setNewExerciseCategory] = useState<'compound' | 'isolation' | 'cardio' | 'flexibility' | 'other'>('compound')
+  const [newExerciseMuscleGroups, setNewExerciseMuscleGroups] = useState<string[]>([])
+  const [isCreatingExercise, setIsCreatingExercise] = useState(false)
 
   // Saving state
   const [isSaving, setIsSaving] = useState(false)
@@ -257,6 +284,62 @@ export function ProgramBuilder() {
     handleUpdateExercise(dayId, exerciseId, {
       sets: exercise.sets.filter((_, i) => i !== setIndex),
     })
+  }
+
+  // Create new exercise inline
+  const handleCreateExercise = async () => {
+    if (!userProfile || !newExerciseName.trim() || !currentEditingDay) return
+
+    setIsCreatingExercise(true)
+    try {
+      // Create the exercise in the database
+      const { data, error } = await supabase
+        .from('exercises')
+        .insert({
+          name: newExerciseName.trim(),
+          category: newExerciseCategory,
+          muscle_groups: newExerciseMuscleGroups,
+          equipment: [],
+          is_public: false,
+          created_by: userProfile.id,
+          tracks_weight: true,
+          tracks_reps: true,
+          tracks_time: false,
+          tracks_distance: false,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      const newExercise = data as Exercise
+
+      // Add to local exercises list
+      setExercises([...exercises, newExercise])
+
+      // Add to current workout day
+      handleAddExercise(currentEditingDay, newExercise)
+
+      // Reset form and go back to exercise list
+      setNewExerciseName('')
+      setNewExerciseCategory('compound')
+      setNewExerciseMuscleGroups([])
+      setShowCreateExercise(false)
+    } catch (error) {
+      console.error('Failed to create exercise:', error)
+      alert('Failed to create exercise. Please try again.')
+    } finally {
+      setIsCreatingExercise(false)
+    }
+  }
+
+  // Toggle muscle group selection
+  const toggleMuscleGroup = (group: string) => {
+    if (newExerciseMuscleGroups.includes(group)) {
+      setNewExerciseMuscleGroups(newExerciseMuscleGroups.filter((g) => g !== group))
+    } else {
+      setNewExerciseMuscleGroups([...newExerciseMuscleGroups, group])
+    }
   }
 
   // Save program
@@ -782,28 +865,124 @@ export function ProgramBuilder() {
                 </button>
               </div>
 
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  value={exerciseSearch}
-                  onChange={(e) => setExerciseSearch(e.target.value)}
-                  placeholder="Search exercises..."
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-purple-400 focus:outline-none"
-                />
-              </div>
+              {!showCreateExercise && (
+                <>
+                  {/* Search */}
+                  <div className="relative mb-3">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={exerciseSearch}
+                      onChange={(e) => setExerciseSearch(e.target.value)}
+                      placeholder="Search exercises..."
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-purple-400 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Create New Exercise Button */}
+                  <button
+                    onClick={() => setShowCreateExercise(true)}
+                    className="w-full py-3 bg-gradient-primary text-white font-semibold rounded-xl hover:opacity-90 transition flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Create New Exercise
+                  </button>
+                </>
+              )}
             </div>
 
-            {/* Exercise List */}
+            {/* Content Area */}
             <div className="flex-1 overflow-y-auto p-6">
-              {isLoadingExercises ? (
+              {showCreateExercise ? (
+                /* Create Exercise Form */
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Exercise Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={newExerciseName}
+                      onChange={(e) => setNewExerciseName(e.target.value)}
+                      placeholder="e.g., Barbell Bench Press"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-purple-400 focus:outline-none transition"
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Category *
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {CATEGORIES.map((cat) => (
+                        <button
+                          key={cat.value}
+                          onClick={() => setNewExerciseCategory(cat.value as any)}
+                          className={`px-4 py-2 rounded-xl font-semibold text-sm transition ${
+                            newExerciseCategory === cat.value
+                              ? 'bg-primary-purple-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Muscle Groups (Optional)
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {MUSCLE_GROUPS.map((group) => (
+                        <button
+                          key={group}
+                          onClick={() => toggleMuscleGroup(group)}
+                          className={`px-3 py-1 rounded-lg font-semibold text-sm transition ${
+                            newExerciseMuscleGroups.includes(group)
+                              ? 'bg-primary-purple-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {group}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={() => {
+                        setShowCreateExercise(false)
+                        setNewExerciseName('')
+                        setNewExerciseCategory('compound')
+                        setNewExerciseMuscleGroups([])
+                      }}
+                      disabled={isCreatingExercise}
+                      className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCreateExercise}
+                      disabled={isCreatingExercise || !newExerciseName.trim()}
+                      className="flex-1 px-4 py-3 bg-gradient-primary text-white rounded-xl font-semibold hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {isCreatingExercise ? 'Creating...' : 'Create & Add'}
+                      <Check className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : isLoadingExercises ? (
                 <div className="text-center py-8 text-gray-500">Loading exercises...</div>
               ) : filteredExercises.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   {exerciseSearch ? 'No exercises found' : 'No exercises available'}
                 </div>
               ) : (
+                /* Exercise List */
                 <div className="space-y-2">
                   {filteredExercises.map((exercise) => {
                     const isAdded = currentDayForExercises.exercises.some(
