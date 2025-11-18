@@ -193,14 +193,55 @@ const sampleExercises = [
 export function SeedExercises() {
   const navigate = useNavigate()
   const [isSeeding, setIsSeeding] = useState(false)
+  const [isClearing, setIsClearing] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [clearSuccess, setClearSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [seededCount, setSeededCount] = useState(0)
+  const [clearedCount, setClearedCount] = useState(0)
+
+  const handleClear = async () => {
+    const confirmed = window.confirm(
+      '⚠️ This will delete ALL public exercises from the database. Are you sure?'
+    )
+
+    if (!confirmed) return
+
+    setIsClearing(true)
+    setError(null)
+    setClearSuccess(false)
+    setSuccess(false)
+    setClearedCount(0)
+
+    try {
+      console.log('🗑️ Clearing all public exercises...')
+
+      const { data, error: deleteError } = await supabase
+        .from('exercises')
+        .delete()
+        .eq('is_public', true)
+        .select()
+
+      if (deleteError) {
+        throw deleteError
+      }
+
+      console.log('✅ Successfully cleared exercises:', data)
+      setClearedCount(data?.length || 0)
+      setClearSuccess(true)
+    } catch (err) {
+      console.error('❌ Error clearing exercises:', err)
+      setError(err instanceof Error ? err.message : 'Failed to clear exercises')
+    } finally {
+      setIsClearing(false)
+    }
+  }
 
   const handleSeed = async () => {
     setIsSeeding(true)
     setError(null)
     setSuccess(false)
+    setClearSuccess(false)
     setSeededCount(0)
 
     try {
@@ -233,13 +274,13 @@ export function SeedExercises() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-2xl mb-4">
             <Dumbbell className="w-8 h-8 text-primary-purple-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Seed Exercise Database</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Manage Exercise Database</h1>
           <p className="text-gray-600">
-            This will add 10 sample exercises to your database for testing.
+            Clear all exercises and seed fresh, or just add 10 sample exercises for testing.
           </p>
         </div>
 
-        {/* Success Message */}
+        {/* Seed Success Message */}
         {success && (
           <div className="mb-6 p-4 bg-green-50 border-2 border-green-200 rounded-xl flex items-start gap-3">
             <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -247,6 +288,19 @@ export function SeedExercises() {
               <p className="text-green-800 font-semibold">Success!</p>
               <p className="text-green-700 text-sm mt-1">
                 Successfully seeded {seededCount} exercises to the database.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Clear Success Message */}
+        {clearSuccess && (
+          <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-blue-800 font-semibold">Cleared!</p>
+              <p className="text-blue-700 text-sm mt-1">
+                Successfully deleted {clearedCount} exercise{clearedCount !== 1 ? 's' : ''} from the database.
               </p>
             </div>
           </div>
@@ -280,32 +334,50 @@ export function SeedExercises() {
 
         {/* Action Buttons */}
         <div className="space-y-3">
+          {/* Clear All Button */}
+          <Button
+            onClick={handleClear}
+            fullWidth
+            size="lg"
+            disabled={isClearing || isSeeding}
+            className="bg-red-600 hover:bg-red-700 text-white border-2 border-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isClearing ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Clearing...</span>
+              </div>
+            ) : (
+              '🗑️ Clear All Exercises'
+            )}
+          </Button>
+
+          {/* Seed Button */}
           <Button
             onClick={handleSeed}
             variant="primary"
             fullWidth
             size="lg"
-            disabled={isSeeding || success}
+            disabled={isSeeding || isClearing}
           >
             {isSeeding ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 <span>Seeding...</span>
               </div>
-            ) : success ? (
-              'Seeded Successfully ✓'
             ) : (
-              'Seed Exercises'
+              '🌱 Seed 10 Exercises'
             )}
           </Button>
 
+          {/* Go to Library / Cancel Button */}
           <Button
             onClick={() => navigate('/library')}
             variant="outline"
             fullWidth
             size="lg"
           >
-            {success ? 'Go to Library' : 'Cancel'}
+            {success || clearSuccess ? 'Go to Library' : 'Cancel'}
           </Button>
         </div>
       </div>
