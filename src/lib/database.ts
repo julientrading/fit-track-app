@@ -156,33 +156,44 @@ export async function setActiveProgram(userId: string, programId: string): Promi
 }
 
 export async function getRecentlyUsedPrograms(userId: string, limit = 3): Promise<Program[]> {
-  // Get programs that have recent workout logs
-  const { data, error } = await supabase
-    .from('programs')
-    .select(`
-      *,
-      workout_logs!inner(completed_at)
-    `)
+  // Get recent completed workouts with programs
+  const { data: workoutLogs, error: workoutError } = await supabase
+    .from('workout_logs')
+    .select('program_id, completed_at')
     .eq('user_id', userId)
-    .eq('workout_logs.status', 'completed')
-    .order('workout_logs.completed_at', { ascending: false })
-    .limit(limit)
+    .eq('status', 'completed')
+    .not('program_id', 'is', null)
+    .order('completed_at', { ascending: false })
+    .limit(50) // Get more to ensure we get unique programs
 
-  if (error) throw new Error(error.message)
+  if (workoutError) throw new Error(workoutError.message)
+  if (!workoutLogs || workoutLogs.length === 0) return []
 
-  // Deduplicate programs (a program might have multiple workout logs)
-  const seenIds = new Set()
-  const uniquePrograms: Program[] = []
+  // Get unique program IDs
+  const seenProgramIds = new Set<string>()
+  const programIds: string[] = []
 
-  data?.forEach((item: any) => {
-    if (!seenIds.has(item.id)) {
-      seenIds.add(item.id)
-      const { workout_logs, ...program } = item
-      uniquePrograms.push(program)
+  workoutLogs.forEach((log) => {
+    if (log.program_id && !seenProgramIds.has(log.program_id)) {
+      seenProgramIds.add(log.program_id)
+      programIds.push(log.program_id)
+      if (programIds.length >= limit) return
     }
   })
 
-  return uniquePrograms.slice(0, limit)
+  if (programIds.length === 0) return []
+
+  // Fetch the actual programs
+  const { data: programs, error: programError } = await supabase
+    .from('programs')
+    .select('*')
+    .in('id', programIds)
+
+  if (programError) throw new Error(programError.message)
+
+  // Return programs in the order they were used
+  const programMap = new Map(programs?.map((p) => [p.id, p]))
+  return programIds.map((id) => programMap.get(id)).filter(Boolean) as Program[]
 }
 
 export async function getPublicPrograms(limit = 20): Promise<Program[]> {
@@ -700,7 +711,6 @@ export async function getExercisePerformanceHistory(
     `)
     .eq('workout_logs.user_id', userId)
     .eq('workout_logs.status', 'completed')
-    .order('workout_logs.started_at', { ascending: true })
     .limit(limit)
 
   if (programId) {
@@ -715,10 +725,17 @@ export async function getExercisePerformanceHistory(
 
   if (error) throw new Error(error.message)
 
+  // Sort data by workout date (since we can't order by joined table columns in Supabase)
+  const sortedData = (data || []).sort((a: any, b: any) => {
+    const dateA = new Date(a.workout_logs.started_at).getTime()
+    const dateB = new Date(b.workout_logs.started_at).getTime()
+    return dateA - dateB
+  })
+
   // Process the data to calculate metrics per workout
   const performanceMap = new Map<string, ExercisePerformanceData>()
 
-  ;(data || []).forEach((log: any) => {
+  sortedData.forEach((log: any) => {
     const key = `${log.workout_log_id}-${log.exercise_id}`
 
     if (!performanceMap.has(key)) {
