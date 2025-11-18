@@ -472,7 +472,10 @@ export function ProgramLibrary() {
                     isActive ? 'border-green-400 bg-green-50' : 'border-gray-200'
                   }`}
                 >
-                  <div className="flex items-start gap-3 mb-3">
+                  <div
+                    onClick={() => navigate(`/program/${program.id}`)}
+                    className="flex items-start gap-3 mb-3 cursor-pointer hover:opacity-80 transition"
+                  >
                     {/* Icon */}
                     <div
                       className={`rounded-xl p-3 flex-shrink-0 ${
@@ -494,7 +497,7 @@ export function ProgramLibrary() {
                       )}
                       <div className="flex flex-wrap gap-2">
                         {program.is_draft && (
-                          <span className="inline-block px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded">
+                          <span className="inline-block px-2 py-1 bg-gray-800 text-white text-xs font-semibold rounded">
                             DRAFT
                           </span>
                         )}
