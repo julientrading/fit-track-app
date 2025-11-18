@@ -176,6 +176,33 @@ export interface Friendship {
   updated_at: string
 }
 
+export interface BodyMeasurement {
+  id: string
+  user_id: string
+  measurement_type:
+    | 'weight'
+    | 'neck'
+    | 'shoulders'
+    | 'chest'
+    | 'biceps_left'
+    | 'biceps_right'
+    | 'forearms_left'
+    | 'forearms_right'
+    | 'waist'
+    | 'hips'
+    | 'thighs_left'
+    | 'thighs_right'
+    | 'calves_left'
+    | 'calves_right'
+    | 'body_fat_percentage'
+  value: number
+  unit: 'lbs' | 'kg' | 'in' | 'cm' | '%'
+  notes: string | null
+  measured_at: string
+  created_at: string
+  updated_at: string
+}
+
 // Helper types for inserts (without timestamps and generated fields)
 export type InsertUser = Omit<User, 'created_at' | 'updated_at'>
 export type InsertExercise = Omit<Exercise, 'id' | 'created_at' | 'updated_at'>
@@ -188,6 +215,7 @@ export type InsertSet = Omit<Set, 'id' | 'created_at' | 'updated_at' | 'is_perso
 export type InsertPersonalRecord = Omit<PersonalRecord, 'id' | 'created_at' | 'updated_at'>
 export type InsertAchievement = Omit<Achievement, 'id' | 'created_at' | 'updated_at'>
 export type InsertFriendship = Omit<Friendship, 'id' | 'created_at' | 'updated_at'>
+export type InsertBodyMeasurement = Omit<BodyMeasurement, 'id' | 'created_at' | 'updated_at'>
 
 // Helper types for updates (all fields optional except id)
 export type UpdateUser = Partial<Omit<User, 'id' | 'created_at' | 'updated_at'>>
@@ -201,3 +229,4 @@ export type UpdateSet = Partial<Omit<Set, 'id' | 'created_at' | 'updated_at'>>
 export type UpdatePersonalRecord = Partial<Omit<PersonalRecord, 'id' | 'created_at' | 'updated_at'>>
 export type UpdateAchievement = Partial<Omit<Achievement, 'id' | 'created_at' | 'updated_at'>>
 export type UpdateFriendship = Partial<Omit<Friendship, 'id' | 'created_at' | 'updated_at'>>
+export type UpdateBodyMeasurement = Partial<Omit<BodyMeasurement, 'id' | 'created_at' | 'updated_at'>>

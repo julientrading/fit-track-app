@@ -8,9 +8,11 @@ import type {
   Set,
   PersonalRecord,
   Exercise,
+  BodyMeasurement,
   InsertWorkoutLog,
   InsertExerciseLog,
   InsertSet,
+  InsertBodyMeasurement,
 } from '@/types/database'
 
 // =====================================================
@@ -793,4 +795,76 @@ export async function getLeaderboard(period: '7d' | '30d' | 'all' = '30d', limit
       workoutCount: completedWorkouts.length,
     }
   }).sort((a: any, b: any) => b.xp - a.xp)
+}
+
+// =====================================================
+// BODY MEASUREMENTS QUERIES
+// =====================================================
+
+export async function createBodyMeasurement(
+  measurementData: InsertBodyMeasurement
+): Promise<BodyMeasurement> {
+  const { data, error } = await supabase
+    .from('body_measurements')
+    .insert(measurementData)
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function getBodyMeasurements(
+  userId: string,
+  measurementType?: string,
+  limit = 100
+): Promise<BodyMeasurement[]> {
+  let query = supabase
+    .from('body_measurements')
+    .select('*')
+    .eq('user_id', userId)
+    .order('measured_at', { ascending: false })
+    .limit(limit)
+
+  if (measurementType) {
+    query = query.eq('measurement_type', measurementType)
+  }
+
+  const { data, error } = await query
+
+  if (error) throw new Error(error.message)
+  return data || []
+}
+
+export async function getLatestBodyMeasurements(
+  userId: string,
+  count = 3
+): Promise<BodyMeasurement[]> {
+  // Get the latest measurement for each type
+  const { data, error } = await supabase
+    .from('body_measurements')
+    .select('*')
+    .eq('user_id', userId)
+    .order('measured_at', { ascending: false })
+    .limit(50) // Get more to find distinct types
+
+  if (error) throw new Error(error.message)
+
+  // Get unique measurement types, keeping the most recent for each
+  const uniqueTypes = new Map<string, BodyMeasurement>()
+  ;(data || []).forEach((measurement) => {
+    if (!uniqueTypes.has(measurement.measurement_type)) {
+      uniqueTypes.set(measurement.measurement_type, measurement)
+    }
+  })
+
+  return Array.from(uniqueTypes.values())
+    .slice(0, count)
+    .sort((a, b) => new Date(b.measured_at).getTime() - new Date(a.measured_at).getTime())
+}
+
+export async function deleteBodyMeasurement(measurementId: string): Promise<void> {
+  const { error } = await supabase.from('body_measurements').delete().eq('id', measurementId)
+
+  if (error) throw new Error(error.message)
 }
