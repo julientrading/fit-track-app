@@ -246,13 +246,27 @@ export function SeedExercises() {
 
     try {
       console.log('🌱 Starting to seed exercises...')
+      console.log('Sample exercises:', sampleExercises.length)
 
-      const { data, error: insertError } = await supabase
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Seed operation timed out after 10 seconds')), 10000)
+      })
+
+      // Create the insert promise
+      const insertPromise = supabase
         .from('exercises')
         .insert(sampleExercises)
         .select()
 
+      // Race between timeout and insert
+      const { data, error: insertError } = await Promise.race([
+        insertPromise,
+        timeoutPromise,
+      ]) as any
+
       if (insertError) {
+        console.error('Insert error:', insertError)
         throw insertError
       }
 
@@ -261,7 +275,17 @@ export function SeedExercises() {
       setSuccess(true)
     } catch (err) {
       console.error('❌ Error seeding exercises:', err)
-      setError(err instanceof Error ? err.message : 'Failed to seed exercises')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to seed exercises'
+
+      // Add helpful hints for common errors
+      let helpfulMessage = errorMessage
+      if (errorMessage.includes('timeout')) {
+        helpfulMessage += '\n\nThis might be a database permission issue. Check your Supabase RLS policies for the exercises table.'
+      } else if (errorMessage.includes('permission') || errorMessage.includes('policy')) {
+        helpfulMessage += '\n\nYou may need to temporarily disable RLS or add an INSERT policy for the exercises table.'
+      }
+
+      setError(helpfulMessage)
     } finally {
       setIsSeeding(false)
     }
