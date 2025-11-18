@@ -8,7 +8,9 @@ import { Profile } from './pages/Profile'
 import { EditProfile } from './pages/EditProfile'
 import { BodyMetrics } from './pages/BodyMetrics'
 import { Settings } from './pages/Settings'
-import { ExerciseLibrary } from './pages/ExerciseLibrary'
+import { Library } from './pages/Library'
+import { ProgramLibrary } from './pages/ProgramLibrary'
+import { ExercisesAll } from './pages/ExercisesAll'
 import { ExerciseDetail } from './pages/ExerciseDetail'
 import { Progress } from './pages/Progress'
 import { SeedExercises } from './pages/SeedExercises'
@@ -104,7 +106,23 @@ export const router = createBrowserRouter([
     path: '/library',
     element: (
       <ProtectedRoute>
-        <ExerciseLibrary />
+        <Library />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/library/programs',
+    element: (
+      <ProtectedRoute>
+        <ProgramLibrary />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/library/exercises',
+    element: (
+      <ProtectedRoute>
+        <ExercisesAll />
       </ProtectedRoute>
     ),
   },

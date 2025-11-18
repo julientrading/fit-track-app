@@ -155,6 +155,99 @@ export async function setActiveProgram(userId: string, programId: string): Promi
   if (error) throw new Error(error.message)
 }
 
+export async function getRecentlyUsedPrograms(userId: string, limit = 3): Promise<Program[]> {
+  // Get programs that have recent workout logs
+  const { data, error } = await supabase
+    .from('programs')
+    .select(`
+      *,
+      workout_logs!inner(completed_at)
+    `)
+    .eq('user_id', userId)
+    .eq('workout_logs.status', 'completed')
+    .order('workout_logs.completed_at', { ascending: false })
+    .limit(limit)
+
+  if (error) throw new Error(error.message)
+
+  // Deduplicate programs (a program might have multiple workout logs)
+  const seenIds = new Set()
+  const uniquePrograms: Program[] = []
+
+  data?.forEach((item: any) => {
+    if (!seenIds.has(item.id)) {
+      seenIds.add(item.id)
+      const { workout_logs, ...program } = item
+      uniquePrograms.push(program)
+    }
+  })
+
+  return uniquePrograms.slice(0, limit)
+}
+
+export async function getPublicPrograms(limit = 20): Promise<Program[]> {
+  const { data, error } = await supabase
+    .from('programs')
+    .select('*')
+    .eq('is_public', true)
+    .order('times_completed', { ascending: false })
+    .limit(limit)
+
+  if (error) throw new Error(error.message)
+  return data || []
+}
+
+export async function duplicateProgram(
+  programId: string,
+  userId: string
+): Promise<Program> {
+  // 1. Get original program
+  const originalProgram = await getProgramById(programId)
+  if (!originalProgram) throw new Error('Program not found')
+
+  // 2. Create new program
+  const newProgram = await createProgram({
+    user_id: userId,
+    name: `${originalProgram.name} (Copy)`,
+    description: originalProgram.description || undefined,
+    goal: originalProgram.goal || undefined,
+    difficulty: originalProgram.difficulty || undefined,
+    duration_weeks: originalProgram.duration_weeks || undefined,
+    days_per_week: originalProgram.days_per_week || undefined,
+    is_active: false,
+  })
+
+  // 3. Get workout days from original program
+  const workoutDays = await getWorkoutDaysByProgram(programId)
+
+  // 4. Duplicate workout days and exercises
+  for (const day of workoutDays) {
+    const newDay = await createWorkoutDay({
+      program_id: newProgram.id,
+      name: day.name,
+      description: day.description || undefined,
+      day_number: day.day_number,
+    })
+
+    // Get exercises for this day
+    const exercises = await getWorkoutDayExercises(day.id)
+
+    // Duplicate each exercise
+    for (const exercise of exercises) {
+      await createWorkoutDayExercise({
+        workout_day_id: newDay.id,
+        exercise_id: exercise.exercise_id,
+        exercise_order: exercise.exercise_order,
+        sets: exercise.sets,
+        rest_time: exercise.rest_time,
+        notes: exercise.notes || undefined,
+      })
+    }
+  }
+
+  return newProgram
+}
+
 // =====================================================
 // WORKOUT DAY QUERIES
 // =====================================================
@@ -808,6 +901,40 @@ export async function getExerciseById(exerciseId: string): Promise<Exercise | nu
 
   if (error) throw new Error(error.message)
   return data
+}
+
+export async function getFrequentlyUsedExercises(userId: string, limit = 10): Promise<Exercise[]> {
+  // Get exercises that have been used most frequently in completed workouts
+  const { data, error } = await supabase
+    .from('sets')
+    .select(`
+      exercise_id,
+      exercises!inner(*)
+    `)
+    .eq('user_id', userId)
+    .eq('completed', true)
+
+  if (error) throw new Error(error.message)
+
+  // Count frequency of each exercise
+  const exerciseCounts: Record<string, { exercise: Exercise; count: number }> = {}
+
+  data?.forEach((item: any) => {
+    const exerciseId = item.exercise_id
+    if (!exerciseCounts[exerciseId]) {
+      exerciseCounts[exerciseId] = {
+        exercise: item.exercises,
+        count: 0,
+      }
+    }
+    exerciseCounts[exerciseId].count++
+  })
+
+  // Sort by frequency and return top exercises
+  return Object.values(exerciseCounts)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit)
+    .map((item) => item.exercise)
 }
 
 // =====================================================
