@@ -142,6 +142,24 @@ export async function getRecentWorkouts(userId: string, limit = 10): Promise<Wor
   return data || []
 }
 
+export async function getWorkoutLogsByProgram(
+  userId: string,
+  programId: string,
+  limit = 50
+): Promise<WorkoutLog[]> {
+  const { data, error } = await supabase
+    .from('workout_logs')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('program_id', programId)
+    .eq('status', 'completed')
+    .order('started_at', { ascending: false })
+    .limit(limit)
+
+  if (error) throw new Error(error.message)
+  return data || []
+}
+
 export async function createWorkoutLog(workoutData: InsertWorkoutLog): Promise<WorkoutLog> {
   const { data, error } = await supabase
     .from('workout_logs')
@@ -362,7 +380,7 @@ export async function createExerciseLog(exerciseData: InsertExerciseLog): Promis
 }
 
 export async function getExerciseLogsByWorkout(workoutLogId: string): Promise<ExerciseLog[]> {
-  const { data, error } = await supabase
+  const { data, error} = await supabase
     .from('exercise_logs')
     .select('*')
     .eq('workout_log_id', workoutLogId)
@@ -370,6 +388,125 @@ export async function getExerciseLogsByWorkout(workoutLogId: string): Promise<Ex
 
   if (error) throw new Error(error.message)
   return data || []
+}
+
+export interface ExercisePerformanceData {
+  workout_date: string
+  exercise_id: string
+  exercise_name: string
+  max_weight: number | null
+  max_reps: number | null
+  total_volume: number | null
+  avg_rpe: number | null
+  max_time: number | null
+  max_distance: number | null
+  workout_log_id: string
+}
+
+export async function getExercisePerformanceHistory(
+  userId: string,
+  programId: string | null = null,
+  exerciseId: string | null = null,
+  limit = 100
+): Promise<ExercisePerformanceData[]> {
+  let query = supabase
+    .from('exercise_logs')
+    .select(`
+      exercise_id,
+      workout_log_id,
+      workout_logs!inner(
+        id,
+        started_at,
+        program_id,
+        user_id
+      ),
+      exercises(name),
+      sets(weight, reps, time_seconds, distance, rpe, completed)
+    `)
+    .eq('workout_logs.user_id', userId)
+    .eq('workout_logs.status', 'completed')
+    .order('workout_logs.started_at', { ascending: true })
+    .limit(limit)
+
+  if (programId) {
+    query = query.eq('workout_logs.program_id', programId)
+  }
+
+  if (exerciseId) {
+    query = query.eq('exercise_id', exerciseId)
+  }
+
+  const { data, error } = await query
+
+  if (error) throw new Error(error.message)
+
+  // Process the data to calculate metrics per workout
+  const performanceMap = new Map<string, ExercisePerformanceData>()
+
+  ;(data || []).forEach((log: any) => {
+    const key = `${log.workout_log_id}-${log.exercise_id}`
+
+    if (!performanceMap.has(key)) {
+      performanceMap.set(key, {
+        workout_date: log.workout_logs.started_at,
+        exercise_id: log.exercise_id,
+        exercise_name: log.exercises?.name || 'Unknown',
+        max_weight: null,
+        max_reps: null,
+        total_volume: 0,
+        avg_rpe: null,
+        max_time: null,
+        max_distance: null,
+        workout_log_id: log.workout_log_id,
+      })
+    }
+
+    const perf = performanceMap.get(key)!
+    const completedSets = (log.sets || []).filter((s: any) => s.completed)
+
+    if (completedSets.length > 0) {
+      // Calculate max weight
+      const weights = completedSets.map((s: any) => s.weight).filter((w: any) => w !== null)
+      if (weights.length > 0) {
+        perf.max_weight = Math.max(perf.max_weight || 0, ...weights)
+      }
+
+      // Calculate max reps
+      const reps = completedSets.map((s: any) => s.reps).filter((r: any) => r !== null)
+      if (reps.length > 0) {
+        perf.max_reps = Math.max(perf.max_reps || 0, ...reps)
+      }
+
+      // Calculate total volume
+      completedSets.forEach((s: any) => {
+        if (s.weight && s.reps) {
+          perf.total_volume = (perf.total_volume || 0) + s.weight * s.reps
+        }
+      })
+
+      // Calculate average RPE
+      const rpeValues = completedSets.map((s: any) => s.rpe).filter((r: any) => r !== null)
+      if (rpeValues.length > 0) {
+        perf.avg_rpe = rpeValues.reduce((sum: number, val: number) => sum + val, 0) / rpeValues.length
+      }
+
+      // Calculate max time
+      const times = completedSets.map((s: any) => s.time_seconds).filter((t: any) => t !== null)
+      if (times.length > 0) {
+        perf.max_time = Math.max(perf.max_time || 0, ...times)
+      }
+
+      // Calculate max distance
+      const distances = completedSets.map((s: any) => s.distance).filter((d: any) => d !== null)
+      if (distances.length > 0) {
+        perf.max_distance = Math.max(perf.max_distance || 0, ...distances)
+      }
+    }
+  })
+
+  return Array.from(performanceMap.values()).sort((a, b) =>
+    new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime()
+  )
 }
 
 // =====================================================
