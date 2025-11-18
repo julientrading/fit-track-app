@@ -32,11 +32,11 @@ export const Home = () => {
   const hasInitialized = useRef(false)
 
   const [isLoading, setIsLoading] = useState(true)
-  const [activeProgram, setActiveProgram] = useState<any>(null)
+  const [_activeProgram, setActiveProgram] = useState<any>(null)
   const [nextWorkout, setNextWorkout] = useState<any>(null)
   const [weeklyStats, setWeeklyStats] = useState<any>(null)
   const [recentWorkouts, setRecentWorkouts] = useState<any[]>([])
-  const [personalRecords, setPersonalRecords] = useState<any[]>([])
+  const [_personalRecords, setPersonalRecords] = useState<any[]>([])
 
   useEffect(() => {
     if (!userProfile) {
@@ -166,8 +166,8 @@ export const Home = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header with gradient background */}
       <DashboardHeader
-        userName={displayUser.full_name || displayUser.name}
-        streak={displayUser.current_streak || displayUser.streak}
+        userName={(displayUser as any).full_name || (displayUser as any).name}
+        streak={(displayUser as any).current_streak || (displayUser as any).streak}
       />
 
       {/* Main Content */}
@@ -204,7 +204,7 @@ export const Home = () => {
           workouts={displayStats.totalWorkouts || displayStats.workouts}
           workoutsChange={mockWeeklyStats.workoutsChange}
           totalTime={displayStats.totalTime}
-          avgTime={displayStats.totalWorkouts > 0 ? Math.round(displayStats.totalTime / displayStats.totalWorkouts) : 0}
+          avgTime={displayStats.totalWorkouts > 0 ? Math.round(displayStats.totalTime / displayStats.totalWorkouts).toString() : '0'}
           personalRecords={displayStats.totalPRs || displayStats.personalRecords}
           xpEarned={mockWeeklyStats.xpEarned}
           level={displayUser.level}

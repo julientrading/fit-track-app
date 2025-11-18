@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { User, Settings, LogOut, Award, TrendingUp, Flame, Dumbbell, Edit2 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Settings, LogOut, Award, TrendingUp, Flame, Dumbbell, Edit2 } from 'lucide-react'
 import { BottomNavigation } from '@/components/layout/BottomNavigation'
 import { useAuthStore } from '@/stores/authStore'
 import { getWeeklyStats, getUserPRs } from '@/lib/database'
@@ -75,7 +74,7 @@ export function Profile() {
               {/* Avatar */}
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-3xl font-bold text-primary-purple-600">
-                  {getInitials(userProfile.full_name)}
+                  {getInitials(userProfile.full_name || 'User')}
                 </span>
               </div>
 

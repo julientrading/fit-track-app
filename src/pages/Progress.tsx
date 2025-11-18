@@ -114,7 +114,8 @@ export function Progress() {
       : 0,
   }
 
-  // Filter PRs by time period  const getFilteredPRs = () => {
+  // Filter PRs by time period
+  const getFilteredPRs = () => {
     const now = new Date()
     let cutoffDate: Date
 
@@ -265,7 +266,7 @@ export function Progress() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-gray-900 truncate">
-                      {(pr.exercise as any)?.name || 'Exercise'}
+                      {(pr as any).exercise?.name || 'Exercise'}
                     </h3>
                     <p className="text-sm text-gray-600">
                       {pr.record_type === 'max_weight' && `${pr.weight} ${userProfile?.preferred_unit || 'lbs'}`}

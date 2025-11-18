@@ -9,6 +9,7 @@ import { ExerciseLibrary } from './pages/ExerciseLibrary'
 import { ExerciseDetail } from './pages/ExerciseDetail'
 import { Progress } from './pages/Progress'
 import { SeedExercises } from './pages/SeedExercises'
+import { Community } from './pages/Community'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -101,6 +102,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <SeedExercises />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/community',
+    element: (
+      <ProtectedRoute>
+        <Community />
       </ProtectedRoute>
     ),
   },

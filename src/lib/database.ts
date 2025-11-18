@@ -3,7 +3,6 @@ import type {
   User,
   Program,
   WorkoutDay,
-  WorkoutDayExercise,
   WorkoutLog,
   ExerciseLog,
   Set,
@@ -588,4 +587,73 @@ export async function getWeeklyStats(userId: string) {
     totalVolume,
     totalPRs,
   }
+}
+
+// =====================================================
+// COMMUNITY QUERIES
+// =====================================================
+
+export async function getCommunityFeed(limit: number = 20) {
+  const { data, error } = await supabase
+    .from('workout_logs')
+    .select(`
+      *,
+      user:users!workout_logs_user_id_fkey(id, full_name, xp, level)
+    `)
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: false })
+    .limit(limit)
+
+  if (error) throw new Error(error.message)
+  return data || []
+}
+
+export async function getLeaderboard(period: '7d' | '30d' | 'all' = '30d', limit: number = 10) {
+  let query = supabase
+    .from('users')
+    .select(`
+      id,
+      full_name,
+      xp,
+      level,
+      workout_logs!workout_logs_user_id_fkey(status, xp_earned, completed_at)
+    `)
+    .order('xp', { ascending: false })
+    .limit(limit)
+
+  const { data, error } = await query
+
+  if (error) throw new Error(error.message)
+
+  // Process data to calculate stats based on period
+  const now = new Date()
+  let cutoffDate: Date | null = null
+
+  if (period === '7d') {
+    cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  } else if (period === '30d') {
+    cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+  }
+
+  return (data || []).map((user: any) => {
+    let workouts = user.workout_logs || []
+
+    // Filter by period if needed
+    if (cutoffDate) {
+      workouts = workouts.filter((w: any) =>
+        w.completed_at && new Date(w.completed_at) >= cutoffDate!
+      )
+    }
+
+    const completedWorkouts = workouts.filter((w: any) => w.status === 'completed')
+    const periodXP = completedWorkouts.reduce((sum: number, w: any) => sum + (w.xp_earned || 0), 0)
+
+    return {
+      id: user.id,
+      full_name: user.full_name,
+      xp: period === 'all' ? user.xp : periodXP,
+      level: user.level,
+      workoutCount: completedWorkouts.length,
+    }
+  }).sort((a: any, b: any) => b.xp - a.xp)
 }
