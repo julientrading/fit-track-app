@@ -9,7 +9,9 @@ import {
   Check,
   Filter,
   X,
+  Edit,
 } from 'lucide-react'
+import { BottomNavigation } from '@/components/layout/BottomNavigation'
 import { useAuthStore } from '@/stores/authStore'
 import {
   getUserPrograms,
@@ -527,24 +529,41 @@ export function ProgramLibrary() {
                   <div className="flex gap-2">
                     {isMyProgram ? (
                       <>
-                        {!isActive && (
+                        {/* Edit Button - Always show for user's programs */}
+                        <button
+                          onClick={() => navigate(`/program/edit/${program.id}`)}
+                          disabled={isActioning}
+                          className="px-4 py-2 bg-primary-purple-600 text-white font-semibold rounded-xl hover:bg-primary-purple-700 transition disabled:opacity-50 flex items-center gap-2"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </button>
+
+                        {/* Set Active - Only show for non-draft programs that aren't active */}
+                        {!program.is_draft && !isActive && (
                           <button
                             onClick={() => handleSetActive(program.id)}
                             disabled={isActioning}
-                            className="flex-1 px-4 py-2 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-2 bg-white border-2 border-green-600 text-green-600 font-semibold rounded-xl hover:bg-green-50 transition disabled:opacity-50 flex items-center justify-center gap-2"
                           >
                             <Check className="w-4 h-4" />
                             Set Active
                           </button>
                         )}
-                        <button
-                          onClick={() => handleDuplicate(program.id)}
-                          disabled={isActioning}
-                          className="px-4 py-2 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition disabled:opacity-50 flex items-center gap-2"
-                        >
-                          <Copy className="w-4 h-4" />
-                          Duplicate
-                        </button>
+
+                        {/* Duplicate - Only show for non-draft programs */}
+                        {!program.is_draft && (
+                          <button
+                            onClick={() => handleDuplicate(program.id)}
+                            disabled={isActioning}
+                            className="px-4 py-2 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition disabled:opacity-50 flex items-center gap-2"
+                          >
+                            <Copy className="w-4 h-4" />
+                            Duplicate
+                          </button>
+                        )}
+
+                        {/* Delete - Always show */}
                         <button
                           onClick={() => handleDeleteConfirm(program.id)}
                           disabled={isActioning}
@@ -602,6 +621,9 @@ export function ProgramLibrary() {
           </div>
         </div>
       )}
+
+      {/* Bottom Navigation */}
+      <BottomNavigation active="library" />
     </div>
   )
 }

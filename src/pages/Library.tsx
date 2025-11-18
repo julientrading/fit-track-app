@@ -4,8 +4,8 @@ import { Plus, Dumbbell, Calendar, ChevronRight } from 'lucide-react'
 import { BottomNavigation } from '@/components/layout/BottomNavigation'
 import { useAuthStore } from '@/stores/authStore'
 import {
-  getRecentlyUsedPrograms,
-  getFrequentlyUsedExercises,
+  getUserPrograms,
+  getAllAvailableExercises,
 } from '@/lib/database'
 import type { Program, Exercise } from '@/types/database'
 
@@ -41,15 +41,20 @@ export function Library() {
         console.log('[Library] Loading library data for user:', userProfile.id)
         setIsLoading(true)
 
-        const [programs, exercises] = await Promise.all([
-          getRecentlyUsedPrograms(userProfile.id, 3),
-          getFrequentlyUsedExercises(userProfile.id, 10),
+        const [allPrograms, allExercises] = await Promise.all([
+          getUserPrograms(userProfile.id),
+          getAllAvailableExercises(userProfile.id),
         ])
 
-        setRecentPrograms(programs)
-        setFrequentExercises(exercises)
+        // Show the 3 most recent programs (including drafts)
+        const recentProgs = allPrograms.slice(0, 3)
+        // Show the 10 most recent exercises
+        const recentExs = allExercises.slice(0, 10)
 
-        console.log('[Library] Loaded', programs.length, 'programs and', exercises.length, 'exercises')
+        setRecentPrograms(recentProgs)
+        setFrequentExercises(recentExs)
+
+        console.log('[Library] Loaded', recentProgs.length, 'programs and', recentExs.length, 'exercises')
 
         hasInitialized.current = true
         isInitializing.current = false

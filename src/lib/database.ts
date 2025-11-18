@@ -93,6 +93,7 @@ export async function createProgram(programData: {
   days_per_week?: number
   is_active?: boolean
   is_draft?: boolean
+  is_public?: boolean
 }): Promise<Program> {
   const { data, error } = await supabase
     .from('programs')
@@ -105,7 +106,7 @@ export async function createProgram(programData: {
       duration_weeks: programData.duration_weeks || null,
       days_per_week: programData.days_per_week || null,
       is_active: programData.is_active || false,
-      is_public: false,
+      is_public: programData.is_public || false,
       is_template: false,
       is_draft: programData.is_draft || false,
     })

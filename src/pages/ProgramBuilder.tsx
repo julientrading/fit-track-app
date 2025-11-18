@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
   Check,
@@ -13,8 +13,16 @@ import {
 import { useAuthStore } from '@/stores/authStore'
 import {
   createProgram,
+  updateProgram,
+  getProgramById,
+  getWorkoutDaysByProgram,
+  getWorkoutDayExercises,
   createWorkoutDay,
+  updateWorkoutDay,
+  deleteWorkoutDay,
   createWorkoutDayExercise,
+  updateWorkoutDayExercise,
+  deleteWorkoutDayExercise,
   getAllAvailableExercises,
   createExercise,
 } from '@/lib/database'
@@ -28,17 +36,20 @@ interface ProgramBasics {
   difficulty: 'beginner' | 'intermediate' | 'advanced' | ''
   durationWeeks: number
   daysPerWeek: number
+  isPublic: boolean
 }
 
 interface WorkoutDayData {
-  id: string // temporary ID for UI
+  id: string // temporary ID for UI OR real database ID when editing
+  dbId?: string // real database ID (when editing)
   name: string
   description: string
   exercises: ExerciseConfig[]
 }
 
 interface ExerciseConfig {
-  id: string // temporary ID for UI
+  id: string // temporary ID for UI OR real database ID when editing
+  dbId?: string // real database ID (when editing)
   exerciseId: string
   exerciseName: string
   sets: SetConfig[]
@@ -82,7 +93,13 @@ const CATEGORIES = [
 
 export function ProgramBuilder() {
   const navigate = useNavigate()
+  const { id: programId } = useParams<{ id: string }>()
   const { userProfile } = useAuthStore()
+
+  // Edit mode
+  const isEditMode = !!programId
+  const [isLoadingProgram, setIsLoadingProgram] = useState(isEditMode)
+  const [originalProgramId, setOriginalProgramId] = useState<string | null>(null)
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState(1)
@@ -96,6 +113,7 @@ export function ProgramBuilder() {
     difficulty: '',
     durationWeeks: 8,
     daysPerWeek: 4,
+    isPublic: false,
   })
 
   const [workoutDays, setWorkoutDays] = useState<WorkoutDayData[]>([])
@@ -137,6 +155,82 @@ export function ProgramBuilder() {
 
     loadExercises()
   }, [userProfile])
+
+  // Load program data when in edit mode
+  const hasLoadedProgram = useRef(false)
+  useEffect(() => {
+    if (!isEditMode || hasLoadedProgram.current || !programId || !userProfile) return
+
+    const loadProgram = async () => {
+      setIsLoadingProgram(true)
+      try {
+        // Load program
+        const program = await getProgramById(programId)
+        if (!program) {
+          alert('Program not found')
+          navigate('/library/programs')
+          return
+        }
+
+        // Check ownership
+        if (program.user_id !== userProfile.id) {
+          alert('You do not have permission to edit this program')
+          navigate('/library/programs')
+          return
+        }
+
+        // Set program basics
+        setProgramBasics({
+          name: program.name,
+          description: program.description || '',
+          goal: program.goal || '',
+          difficulty: program.difficulty || '',
+          durationWeeks: program.duration_weeks || 8,
+          daysPerWeek: program.days_per_week || 4,
+          isPublic: program.is_public || false,
+        })
+
+        setOriginalProgramId(program.id)
+
+        // Load workout days
+        const days = await getWorkoutDaysByProgram(programId)
+        const loadedDays: WorkoutDayData[] = await Promise.all(
+          days.map(async (day) => {
+            const dayExercises = await getWorkoutDayExercises(day.id)
+
+            const exercises: ExerciseConfig[] = dayExercises.map((de: any) => ({
+              id: `ex-${de.id}`,
+              dbId: de.id,
+              exerciseId: de.exercise_id,
+              exerciseName: de.exercise?.name || 'Unknown Exercise',
+              sets: de.sets || [],
+              restTime: de.rest_time || 90,
+              notes: de.notes || '',
+            }))
+
+            return {
+              id: `day-${day.id}`,
+              dbId: day.id,
+              name: day.name,
+              description: day.description || '',
+              exercises,
+            }
+          })
+        )
+
+        setWorkoutDays(loadedDays)
+        hasLoadedProgram.current = true
+      } catch (error) {
+        console.error('Failed to load program:', error)
+        alert('Failed to load program')
+        navigate('/library/programs')
+      } finally {
+        setIsLoadingProgram(false)
+      }
+    }
+
+    loadProgram()
+  }, [isEditMode, programId, userProfile, navigate])
 
   // Step 1: Validate program basics
   const canProceedFromStep1 = () => {
@@ -351,30 +445,55 @@ export function ProgramBuilder() {
 
     setIsSaving(true)
     try {
-      // 1. Create program
-      const program = await createProgram({
-        user_id: userProfile.id,
-        name: programBasics.name,
-        description: programBasics.description,
-        goal: programBasics.goal,
-        difficulty: programBasics.difficulty || undefined,
-        duration_weeks: programBasics.durationWeeks,
-        days_per_week: programBasics.daysPerWeek,
-        is_active: false,
-        is_draft: false,
-      })
+      let programIdToUse: string
 
-      // 2. Create workout days
+      if (isEditMode && originalProgramId) {
+        // Update existing program
+        await updateProgram(originalProgramId, {
+          name: programBasics.name,
+          description: programBasics.description,
+          goal: programBasics.goal,
+          difficulty: programBasics.difficulty || undefined,
+          duration_weeks: programBasics.durationWeeks,
+          days_per_week: programBasics.daysPerWeek,
+          is_public: programBasics.isPublic,
+          is_draft: false,
+        })
+        programIdToUse = originalProgramId
+
+        // Delete existing workout days (simpler than updating)
+        const existingDays = await getWorkoutDaysByProgram(originalProgramId)
+        for (const day of existingDays) {
+          await deleteWorkoutDay(day.id)
+        }
+      } else {
+        // Create new program
+        const program = await createProgram({
+          user_id: userProfile.id,
+          name: programBasics.name,
+          description: programBasics.description,
+          goal: programBasics.goal,
+          difficulty: programBasics.difficulty || undefined,
+          duration_weeks: programBasics.durationWeeks,
+          days_per_week: programBasics.daysPerWeek,
+          is_active: false,
+          is_draft: false,
+          is_public: programBasics.isPublic,
+        })
+        programIdToUse = program.id
+      }
+
+      // Create workout days
       for (let i = 0; i < workoutDays.length; i++) {
         const dayData = workoutDays[i]
         const workoutDay = await createWorkoutDay({
-          program_id: program.id,
+          program_id: programIdToUse,
           name: dayData.name,
           description: dayData.description,
           day_number: i + 1,
         })
 
-        // 3. Create workout day exercises
+        // Create workout day exercises
         for (let j = 0; j < dayData.exercises.length; j++) {
           const exercise = dayData.exercises[j]
           await createWorkoutDayExercise({
@@ -392,8 +511,8 @@ export function ProgramBuilder() {
         }
       }
 
-      // Navigate to home or programs page
-      navigate('/')
+      // Navigate to library programs page
+      navigate('/library/programs')
     } catch (error) {
       console.error('Failed to save program:', error)
       alert('Failed to save program. Please try again.')
@@ -414,30 +533,54 @@ export function ProgramBuilder() {
 
     setIsSaving(true)
     try {
-      // 1. Create program as draft
-      const program = await createProgram({
-        user_id: userProfile.id,
-        name: programBasics.name,
-        description: programBasics.description,
-        goal: programBasics.goal || undefined,
-        difficulty: programBasics.difficulty || undefined,
-        duration_weeks: programBasics.durationWeeks || undefined,
-        days_per_week: programBasics.daysPerWeek || undefined,
-        is_active: false,
-        is_draft: true,
-      })
+      let programIdToUse: string
 
-      // 2. Create workout days if any exist
+      if (isEditMode && originalProgramId) {
+        // Update existing program as draft (drafts are always private)
+        await updateProgram(originalProgramId, {
+          name: programBasics.name,
+          description: programBasics.description,
+          goal: programBasics.goal || undefined,
+          difficulty: programBasics.difficulty || undefined,
+          duration_weeks: programBasics.durationWeeks || undefined,
+          days_per_week: programBasics.daysPerWeek || undefined,
+          is_public: false,
+          is_draft: true,
+        })
+        programIdToUse = originalProgramId
+
+        // Delete existing workout days (simpler than updating)
+        const existingDays = await getWorkoutDaysByProgram(originalProgramId)
+        for (const day of existingDays) {
+          await deleteWorkoutDay(day.id)
+        }
+      } else {
+        // Create new program as draft
+        const program = await createProgram({
+          user_id: userProfile.id,
+          name: programBasics.name,
+          description: programBasics.description,
+          goal: programBasics.goal || undefined,
+          difficulty: programBasics.difficulty || undefined,
+          duration_weeks: programBasics.durationWeeks || undefined,
+          days_per_week: programBasics.daysPerWeek || undefined,
+          is_active: false,
+          is_draft: true,
+        })
+        programIdToUse = program.id
+      }
+
+      // Create workout days if any exist
       for (let i = 0; i < workoutDays.length; i++) {
         const dayData = workoutDays[i]
         const workoutDay = await createWorkoutDay({
-          program_id: program.id,
+          program_id: programIdToUse,
           name: dayData.name,
           description: dayData.description,
           day_number: i + 1,
         })
 
-        // 3. Create workout day exercises if any exist
+        // Create workout day exercises if any exist
         for (let j = 0; j < dayData.exercises.length; j++) {
           const exercise = dayData.exercises[j]
           await createWorkoutDayExercise({
@@ -472,6 +615,18 @@ export function ProgramBuilder() {
 
   const currentDayForExercises = workoutDays.find((d) => d.id === currentEditingDay)
 
+  // Show loading state while loading program in edit mode
+  if (isLoadingProgram) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-purple-600 mb-4"></div>
+          <p className="text-gray-600">Loading program...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
@@ -484,7 +639,9 @@ export function ProgramBuilder() {
             >
               <ArrowLeft className="w-6 h-6" />
             </button>
-            <h1 className="text-2xl font-bold flex-1">Create Program</h1>
+            <h1 className="text-2xl font-bold flex-1">
+              {isEditMode ? 'Edit Program' : 'Create Program'}
+            </h1>
           </div>
 
           {/* Progress Steps */}
@@ -846,6 +1003,40 @@ export function ProgramBuilder() {
               </div>
             </div>
 
+            {/* Privacy Toggle */}
+            <div className="bg-white rounded-2xl border-2 border-gray-200 p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Program Visibility</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Choose whether this program should be visible in the community library
+              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    {programBasics.isPublic ? 'Public' : 'Private'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {programBasics.isPublic
+                      ? 'Other users can view and duplicate this program'
+                      : 'Only you can see this program'}
+                  </p>
+                </div>
+                <button
+                  onClick={() =>
+                    setProgramBasics({ ...programBasics, isPublic: !programBasics.isPublic })
+                  }
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                    programBasics.isPublic ? 'bg-primary-purple-600' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                      programBasics.isPublic ? 'translate-x-7' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-gray-900">Workout Days</h2>
               {workoutDays.map((day, index) => (
@@ -905,7 +1096,13 @@ export function ProgramBuilder() {
               disabled={isSaving}
               className="flex-1 bg-gradient-primary text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {isSaving ? 'Creating Program...' : 'Create Program'}
+              {isSaving
+                ? isEditMode
+                  ? 'Saving Changes...'
+                  : 'Creating Program...'
+                : isEditMode
+                ? 'Save Changes'
+                : 'Create Program'}
               <Check className="w-5 h-5" />
             </button>
           )}
