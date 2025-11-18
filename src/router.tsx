@@ -7,6 +7,7 @@ import { EditProfile } from './pages/EditProfile'
 import { Settings } from './pages/Settings'
 import { ExerciseLibrary } from './pages/ExerciseLibrary'
 import { ExerciseDetail } from './pages/ExerciseDetail'
+import { Progress } from './pages/Progress'
 import { SeedExercises } from './pages/SeedExercises'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
@@ -84,6 +85,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <ExerciseDetail />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/progress',
+    element: (
+      <ProtectedRoute>
+        <Progress />
       </ProtectedRoute>
     ),
   },
