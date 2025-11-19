@@ -5,8 +5,12 @@ import { Button } from '@/components/ui/Button'
 import { WorkoutSummaryCard } from '@/components/features/workout/WorkoutSummaryCard'
 import { PRsAchieved } from '@/components/features/workout/PRsAchieved'
 import { XPEarnedCard } from '@/components/features/workout/XPEarnedCard'
+import { ProgressionModal } from '@/components/modals/ProgressionModal'
+import { RegressionModal } from '@/components/modals/RegressionModal'
 import { getWorkoutDetails } from '@/lib/database'
+import { analyzeExerciseProgression, applyProgressionChanges } from '@/lib/progressionAnalyzer'
 import { useAuthStore } from '@/stores/authStore'
+import type { ProgressionAnalysis, ProgressionChanges } from '@/types/database'
 
 interface PersonalRecord {
   exerciseName: string
@@ -34,6 +38,11 @@ export function WorkoutComplete() {
     xpEarned: number
     personalRecords: PersonalRecord[]
   } | null>(null)
+
+  // Progression tracking
+  const [progressionQueue, setProgressionQueue] = useState<ProgressionAnalysis[]>([])
+  const [currentProgressionIndex, setCurrentProgressionIndex] = useState(0)
+  const [isAnalyzingProgression, setIsAnalyzingProgression] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -112,6 +121,58 @@ export function WorkoutComplete() {
           personalRecords: formattedPRs,
         })
 
+        // Analyze progression for each exercise
+        if (userProfile && workoutLog.workout_day_id) {
+          console.log('🔍 Analyzing progression for exercises...')
+          setIsAnalyzingProgression(true)
+
+          try {
+            // Get workout day exercises to match exercise_id with workout_day_exercise_id
+            const { getWorkoutDayExercises } = await import('@/lib/database')
+            const workoutDayExercises = await getWorkoutDayExercises(workoutLog.workout_day_id)
+
+            const progressionAnalyses: ProgressionAnalysis[] = []
+
+            for (const exerciseLog of exerciseLogs) {
+              // Find matching workout_day_exercise
+              const workoutDayExercise = workoutDayExercises.find(
+                (wde: any) => wde.exercise_id === exerciseLog.exercise_id
+              )
+
+              if (!workoutDayExercise) {
+                console.log(`⚠️ No workout day exercise found for ${exerciseLog.exercise_name}`)
+                continue
+              }
+
+              try {
+                const analysis = await analyzeExerciseProgression(
+                  userProfile.id,
+                  exerciseLog.exercise_id,
+                  workoutDayExercise.id, // workout_day_exercise_id
+                  exerciseLog.exercise_name,
+                  id
+                )
+
+                if (analysis && (analysis.type === 'progression' || analysis.type === 'regression')) {
+                  progressionAnalyses.push(analysis)
+                  console.log(`✅ ${analysis.type} detected for ${exerciseLog.exercise_name}`)
+                }
+              } catch (error) {
+                console.error(`Failed to analyze ${exerciseLog.exercise_name}:`, error)
+              }
+            }
+
+            if (progressionAnalyses.length > 0) {
+              console.log(`📊 Found ${progressionAnalyses.length} exercises ready for progression/regression`)
+              setProgressionQueue(progressionAnalyses)
+            }
+          } catch (error) {
+            console.error('Failed to analyze progression:', error)
+          } finally {
+            setIsAnalyzingProgression(false)
+          }
+        }
+
         // Mark as initialized
         hasInitialized.current = true
         isInitializing.current = false
@@ -145,6 +206,45 @@ export function WorkoutComplete() {
   const handleDone = () => {
     navigate('/')
   }
+
+  const handleApplyProgression = async (changes: ProgressionChanges) => {
+    const currentAnalysis = progressionQueue[currentProgressionIndex]
+    if (!currentAnalysis) return
+
+    try {
+      console.log(`📝 Applying ${changes.method} progression to ${currentAnalysis.exerciseName}`)
+      const success = await applyProgressionChanges(
+        currentAnalysis.workoutDayExerciseId,
+        changes
+      )
+
+      if (success) {
+        console.log(`✅ Successfully applied progression`)
+      } else {
+        console.error(`❌ Failed to apply progression`)
+        alert('Failed to apply changes. Please try again.')
+      }
+    } catch (error) {
+      console.error('Failed to apply progression:', error)
+      alert('Failed to apply changes. Please try again.')
+    }
+  }
+
+  const handleDismissProgression = () => {
+    // Move to next in queue or close
+    if (currentProgressionIndex < progressionQueue.length - 1) {
+      setCurrentProgressionIndex(currentProgressionIndex + 1)
+    } else {
+      // All done, clear queue
+      setProgressionQueue([])
+      setCurrentProgressionIndex(0)
+    }
+  }
+
+  // Get current progression to show
+  const currentProgression = progressionQueue[currentProgressionIndex]
+  const showProgressionModal = currentProgression && currentProgression.type === 'progression'
+  const showRegressionModal = currentProgression && currentProgression.type === 'regression'
 
   if (isLoading) {
     return (
@@ -228,6 +328,23 @@ export function WorkoutComplete() {
           </div>
         </div>
       </div>
+
+      {/* Progression Modals */}
+      {showProgressionModal && (
+        <ProgressionModal
+          analysis={currentProgression}
+          onApply={handleApplyProgression}
+          onDismiss={handleDismissProgression}
+        />
+      )}
+
+      {showRegressionModal && (
+        <RegressionModal
+          analysis={currentProgression}
+          onApply={handleApplyProgression}
+          onDismiss={handleDismissProgression}
+        />
+      )}
     </div>
   )
 }

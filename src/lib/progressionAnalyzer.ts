@@ -20,16 +20,24 @@ const DEFAULT_SETTINGS: ProgressionSettings = {
 
 /**
  * Analyzes workout history to determine if progression/regression is recommended
+ * @param currentWorkoutLogId - The workout that just completed (to include in analysis)
  */
 export async function analyzeExerciseProgression(
   userId: string,
   exerciseId: string,
   workoutDayExerciseId: string,
-  exerciseName: string
+  exerciseName: string,
+  currentWorkoutLogId: string
 ): Promise<ProgressionAnalysis | null> {
   try {
-    // 1. Get recent workout logs for this exercise (last 4 workouts)
-    const recentLogs = await getRecentExerciseLogs(userId, exerciseId, 4)
+    // 1. Get recent workout logs for this exercise
+    // Include current workout (just finished) + last 3 = 4 total workouts
+    const recentLogs = await getRecentExerciseLogsIncludingCurrent(
+      userId,
+      exerciseId,
+      currentWorkoutLogId,
+      3 // +3 previous workouts
+    )
 
     if (recentLogs.length < 2) {
       // Not enough data to analyze
@@ -111,14 +119,37 @@ export async function analyzeExerciseProgression(
 }
 
 /**
- * Get recent exercise logs with actual performance
+ * Get recent exercise logs INCLUDING the current workout
  */
-async function getRecentExerciseLogs(
+async function getRecentExerciseLogsIncludingCurrent(
   userId: string,
   exerciseId: string,
-  limit: number
+  currentWorkoutLogId: string,
+  additionalCount: number
 ) {
-  const { data: workoutLogs, error } = await supabase
+  // First, get the current workout's exercise log
+  const { data: currentWorkoutData, error: currentError } = await supabase
+    .from('workout_logs')
+    .select(`
+      id,
+      completed_at,
+      exercise_logs!inner(
+        id,
+        exercise_id
+      )
+    `)
+    .eq('id', currentWorkoutLogId)
+    .eq('user_id', userId)
+    .eq('exercise_logs.exercise_id', exerciseId)
+    .single()
+
+  if (currentError || !currentWorkoutData) {
+    console.error('[Progression] Failed to get current workout:', currentError)
+    return []
+  }
+
+  // Then get previous workouts (excluding current one)
+  const { data: previousWorkouts, error: previousError } = await supabase
     .from('workout_logs')
     .select(`
       id,
@@ -131,17 +162,21 @@ async function getRecentExerciseLogs(
     .eq('user_id', userId)
     .eq('exercise_logs.exercise_id', exerciseId)
     .eq('status', 'completed')
+    .neq('id', currentWorkoutLogId)
     .order('completed_at', { ascending: false })
-    .limit(limit)
+    .limit(additionalCount)
 
-  if (error) {
-    console.error('[Progression] Failed to get workout logs:', error)
+  if (previousError) {
+    console.error('[Progression] Failed to get previous workouts:', previousError)
     return []
   }
 
+  // Combine current + previous (current first, then previous in reverse chronological order)
+  const allWorkouts = [currentWorkoutData, ...(previousWorkouts || [])]
+
   // Get sets for each exercise log
   const logsWithSets = await Promise.all(
-    workoutLogs.map(async (log) => {
+    allWorkouts.map(async (log) => {
       const exerciseLog = (log as any).exercise_logs[0]
 
       const { data: sets } = await supabase
@@ -156,6 +191,7 @@ async function getRecentExerciseLogs(
         workoutLogId: log.id,
         date: log.completed_at,
         sets: sets || [],
+        isCurrent: log.id === currentWorkoutLogId,
       }
     })
   )

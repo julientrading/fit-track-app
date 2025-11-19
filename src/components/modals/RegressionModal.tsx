@@ -78,13 +78,18 @@ export function RegressionModal({ analysis, onApply, onDismiss }: RegressionModa
             </div>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Last {history.length} workouts:</span>
+                <span className="text-gray-600">Recent workouts:</span>
               </div>
-              {history.slice(-2).map((entry, idx) => (
-                <div key={idx} className="flex items-center gap-2">
+              {history.slice(0, 2).map((entry, idx) => (
+                <div key={idx} className="flex items-center justify-between gap-2">
                   <span className="text-orange-600 font-bold">
                     {entry.actualReps} reps ⚠️
                   </span>
+                  {idx === 0 && (
+                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-semibold">
+                      Today
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
