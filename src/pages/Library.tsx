@@ -100,7 +100,7 @@ export function Library() {
               Add Program
             </button>
             <button
-              onClick={() => alert('Exercise creation feature coming soon!')}
+              onClick={() => navigate('/exercise/create')}
               className="flex-1 bg-white/20 hover:bg-white/30 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition"
             >
               <Plus className="w-5 h-5" />

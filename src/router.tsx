@@ -13,6 +13,7 @@ import { Library } from './pages/Library'
 import { ProgramLibrary } from './pages/ProgramLibrary'
 import { ExercisesAll } from './pages/ExercisesAll'
 import { ExerciseDetail } from './pages/ExerciseDetail'
+import { ExerciseEditor } from './pages/ExerciseEditor'
 import { Progress } from './pages/Progress'
 import { SeedExercises } from './pages/SeedExercises'
 import { Community } from './pages/Community'
@@ -148,6 +149,22 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <ExerciseDetail />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/exercise/create',
+    element: (
+      <ProtectedRoute>
+        <ExerciseEditor />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/exercise/edit/:id',
+    element: (
+      <ProtectedRoute>
+        <ExerciseEditor />
       </ProtectedRoute>
     ),
   },

@@ -316,7 +316,7 @@ export function ExerciseDetail() {
             <div className="flex gap-3">
               {/* Edit Button */}
               <button
-                onClick={() => alert('Exercise editing will be implemented next!')}
+                onClick={() => navigate(`/exercise/edit/${exercise.id}`)}
                 disabled={isActioning}
                 className="flex-1 px-4 py-3 bg-primary-purple-600 text-white font-semibold rounded-xl hover:bg-primary-purple-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
               >
