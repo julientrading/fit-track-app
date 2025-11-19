@@ -1004,6 +1004,44 @@ export async function createExercise(exerciseData: {
   return data as Exercise
 }
 
+export async function updateExercise(
+  exerciseId: string,
+  updates: Partial<{
+    name: string
+    category: 'compound' | 'isolation' | 'cardio' | 'flexibility' | 'other'
+    muscle_groups: string[]
+    equipment: string[]
+    difficulty: 'beginner' | 'intermediate' | 'advanced' | null
+    description: string | null
+    instructions: string | null
+    is_public: boolean
+    tracks_weight: boolean
+    tracks_reps: boolean
+    tracks_time: boolean
+    tracks_distance: boolean
+    video_url: string | null
+  }>
+): Promise<Exercise> {
+  const { data, error } = await supabase
+    .from('exercises')
+    .update(updates)
+    .eq('id', exerciseId)
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function deleteExercise(exerciseId: string): Promise<void> {
+  const { error } = await supabase
+    .from('exercises')
+    .delete()
+    .eq('id', exerciseId)
+
+  if (error) throw new Error(error.message)
+}
+
 // =====================================================
 // HELPER FUNCTION: Get Last Performance
 // =====================================================

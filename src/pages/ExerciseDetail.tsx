@@ -8,9 +8,13 @@ import {
   Video,
   TrendingUp,
   Target,
+  Edit,
+  Trash2,
+  Globe,
+  Lock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { getExerciseById, getExercisePRs } from '@/lib/database'
+import { getExerciseById, getExercisePRs, deleteExercise } from '@/lib/database'
 import { useAuthStore } from '@/stores/authStore'
 import type { Exercise, PersonalRecord } from '@/types/database'
 
@@ -23,6 +27,8 @@ export function ExerciseDetail() {
   const [prs, setPrs] = useState<PersonalRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isActioning, setIsActioning] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -56,6 +62,23 @@ export function ExerciseDetail() {
 
     loadExerciseData()
   }, [id, userProfile])
+
+  const handleDelete = async () => {
+    if (!exercise) return
+
+    setIsActioning(true)
+    try {
+      await deleteExercise(exercise.id)
+      alert('Exercise deleted successfully!')
+      navigate('/library/exercises')
+    } catch (error) {
+      console.error('Failed to delete exercise:', error)
+      alert('Failed to delete exercise')
+    } finally {
+      setIsActioning(false)
+      setShowDeleteConfirm(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -220,6 +243,23 @@ export function ExerciseDetail() {
               </div>
             )}
           </div>
+
+          {/* Visibility */}
+          <div className="pt-4 mt-4 border-t border-gray-200">
+            <div className="flex items-center gap-2">
+              {exercise.is_public ? (
+                <>
+                  <Globe className="w-4 h-4 text-gray-600" />
+                  <span className="text-sm text-gray-600">Public - Visible in community</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4 text-gray-600" />
+                  <span className="text-sm text-gray-600">Private - Only you can see this</span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Personal Records */}
@@ -270,11 +310,66 @@ export function ExerciseDetail() {
           </Button>
         )}
 
+        {/* Action Buttons - Only for user's own exercises */}
+        {userProfile && exercise.created_by === userProfile.id && (
+          <div className="bg-white rounded-2xl border-2 border-gray-200 p-4">
+            <div className="flex gap-3">
+              {/* Edit Button */}
+              <button
+                onClick={() => alert('Exercise editing will be implemented next!')}
+                disabled={isActioning}
+                className="flex-1 px-4 py-3 bg-primary-purple-600 text-white font-semibold rounded-xl hover:bg-primary-purple-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                Edit
+              </button>
+
+              {/* Delete Button */}
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={isActioning}
+                className="px-4 py-3 bg-red-100 text-red-700 font-semibold rounded-xl hover:bg-red-200 transition disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Back Button */}
         <Button onClick={() => navigate('/library')} variant="outline" fullWidth size="lg">
           Back to Library
         </Button>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Exercise?</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete "{exercise.name}"? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isActioning}
+                className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isActioning}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {isActioning ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
