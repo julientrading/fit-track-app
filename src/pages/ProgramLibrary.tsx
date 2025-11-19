@@ -237,7 +237,7 @@ export function ProgramLibrary() {
             >
               <ArrowLeft className="w-6 h-6" />
             </button>
-            <h1 className="text-2xl font-bold flex-1">Workout Program Library</h1>
+            <h1 className="text-2xl font-bold flex-1">Program Library</h1>
           </div>
 
           {/* Tabs */}

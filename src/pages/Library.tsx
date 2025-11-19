@@ -112,10 +112,10 @@ export function Library() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-6 space-y-8">
-        {/* Workout Programs Section */}
+        {/* Programs Section */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Workout Programs</h2>
+            <h2 className="text-xl font-bold text-gray-900">Programs</h2>
             <button
               onClick={() => navigate('/library/programs')}
               className="text-sm text-primary-purple-600 font-semibold hover:text-primary-purple-700 flex items-center gap-1"
@@ -142,7 +142,7 @@ export function Library() {
               <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <h3 className="font-bold text-gray-900 mb-2">No Programs Yet</h3>
               <p className="text-gray-600 text-sm mb-4">
-                Create your first workout program to get started
+                Create your first program to get started
               </p>
               <button
                 onClick={() => navigate('/program/create')}
@@ -170,7 +170,7 @@ export function Library() {
                       <h3 className="font-bold text-gray-900 mb-1">{program.name}</h3>
                       <div className="flex flex-wrap gap-2 mb-2">
                         {program.is_draft && (
-                          <span className="inline-block px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded">
+                          <span className="inline-block px-2 py-1 bg-gray-800 text-white text-xs font-semibold rounded">
                             DRAFT
                           </span>
                         )}

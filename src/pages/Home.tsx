@@ -188,7 +188,7 @@ export const Home = () => {
               No Active Program
             </h3>
             <p className="text-gray-600 mb-4">
-              Create a workout program to get started with your fitness journey!
+              Create a program to get started with your fitness journey!
             </p>
             <button
               onClick={() => navigate('/program/create')}

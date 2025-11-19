@@ -397,7 +397,7 @@ export function Progress() {
 
           {/* Program Selector */}
           <div className="mb-4">
-            <label className="text-sm font-semibold mb-2 block">Workout Program</label>
+            <label className="text-sm font-semibold mb-2 block">Program</label>
             <div className="relative">
               <button
                 onClick={() => setShowProgramDropdown(!showProgramDropdown)}
