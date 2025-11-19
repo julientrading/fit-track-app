@@ -231,3 +231,135 @@ export type UpdatePersonalRecord = Partial<Omit<PersonalRecord, 'id' | 'created_
 export type UpdateAchievement = Partial<Omit<Achievement, 'id' | 'created_at' | 'updated_at'>>
 export type UpdateFriendship = Partial<Omit<Friendship, 'id' | 'created_at' | 'updated_at'>>
 export type UpdateBodyMeasurement = Partial<Omit<BodyMeasurement, 'id' | 'created_at' | 'updated_at'>>
+
+// =====================================================
+// PROGRESSIVE OVERLOAD TYPES
+// =====================================================
+
+// Progression analysis result
+export interface ProgressionAnalysis {
+  exerciseId: string
+  exerciseName: string
+  workoutDayExerciseId: string
+  type: 'progression' | 'regression' | 'stagnation' | 'none'
+
+  // Current performance
+  current: {
+    weight: number
+    reps: number
+    sets: number
+  }
+
+  // Recent history (last 4 workouts)
+  history: Array<{
+    workoutLogId: string
+    date: string
+    targetReps: number
+    actualReps: number
+    weight: number
+    success: boolean
+  }>
+
+  // Streak tracking
+  consecutiveSuccesses: number
+  consecutiveFailures: number
+
+  // Trigger reason
+  triggerReason: string
+
+  // Recommendations
+  recommendation?: ProgressionRecommendation
+}
+
+// Progression recommendation with options
+export interface ProgressionRecommendation {
+  // Weight progression options
+  weightOptions?: Array<{
+    increment: number
+    label: string  // "Small Step", "Standard", etc.
+    newWeight: number
+  }>
+
+  // Rep progression options
+  repOptions?: Array<{
+    increment: number
+    newReps: number
+  }>
+
+  // Volume progression options
+  volumeOptions?: Array<{
+    increment: number
+    newSets: number
+  }>
+
+  // Suggested option (based on exercise type and history)
+  suggested?: {
+    method: 'weight' | 'reps' | 'volume'
+    value: number
+    reasoning: string
+  }
+}
+
+// Progression settings (user preferences)
+export interface ProgressionSettings {
+  userId: string
+  exerciseId?: string  // null = default for all exercises
+
+  // Trigger thresholds
+  consecutiveSuccessesRequired: number  // default: 2
+  requireAllSets: boolean  // vs majority of sets
+  repsTolerance: number  // "within N reps" vs exact match
+
+  // Behavior
+  autoShowModal: boolean  // show modal automatically
+  autoApplyPreferred: boolean  // skip modal if preferred method set
+  preferredMethod?: 'weight' | 'reps' | 'volume' | null
+
+  // Weight increments (kg)
+  preferredWeightIncrement?: number
+
+  // Frequency control
+  minDaysBetweenProgressions?: number  // prevent too aggressive progression
+}
+
+// Progression history record
+export interface ProgressionHistory {
+  id: string
+  userId: string
+  exerciseId: string
+  workoutDayExerciseId: string
+  workoutLogId: string
+  date: string
+
+  type: 'progression' | 'regression' | 'deload'
+  changeType: 'weight' | 'reps' | 'volume'
+
+  oldWeight: number
+  newWeight: number
+  oldReps: number
+  newReps: number
+  oldSets: number
+  newSets: number
+
+  triggerReason: string
+  userConfirmed: boolean
+  autoApplied: boolean
+
+  createdAt: string
+}
+
+// Helper type for progression modal data
+export interface ProgressionModalData {
+  analysis: ProgressionAnalysis
+  exercise: Exercise
+  onApply: (changes: ProgressionChanges) => Promise<void>
+  onDismiss: () => void
+}
+
+// Changes to apply from progression
+export interface ProgressionChanges {
+  method: 'weight' | 'reps' | 'volume' | 'keep_current'
+  weightIncrement?: number
+  repIncrement?: number
+  setIncrement?: number
+}
