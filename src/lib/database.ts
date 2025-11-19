@@ -67,6 +67,7 @@ export async function getActiveProgram(userId: string): Promise<Program | null> 
 
   if (error && error.code !== 'PGRST116') {
     // PGRST116 = not found
+    console.error('[getActiveProgram] Error:', error)
     throw new Error(error.message)
   }
   return data
