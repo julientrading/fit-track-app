@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Dumbbell, Filter, X, ArrowLeft } from 'lucide-react'
+import { Search, Dumbbell, Filter, X, ArrowLeft, Edit, Trash2, Globe, Lock } from 'lucide-react'
+import { BottomNavigation } from '@/components/layout/BottomNavigation'
 import { useAuthStore } from '@/stores/authStore'
-import { getAllAvailableExercises } from '@/lib/database'
+import { getUserExercises, getPublicExercises } from '@/lib/database'
 import type { Exercise } from '@/types/database'
 
 const MUSCLE_GROUPS = [
@@ -33,6 +34,7 @@ export function ExercisesAll() {
   const isInitializing = useRef(false)
   const hasInitialized = useRef(false)
 
+  const [activeTab, setActiveTab] = useState<'my' | 'community'>('my')
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -40,8 +42,10 @@ export function ExercisesAll() {
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deletingExerciseId, setDeletingExerciseId] = useState<string | null>(null)
 
-  // Load exercises
+  // Load exercises based on active tab
   useEffect(() => {
     if (!userProfile) {
       setIsLoading(false)
@@ -49,36 +53,27 @@ export function ExercisesAll() {
     }
 
     const loadExercises = async () => {
-      // Guard against double loading
-      if (isInitializing.current || hasInitialized.current) {
-        console.log('[ExerciseLibrary] Already loading or loaded, skipping...')
-        setIsLoading(false)
-        return
-      }
-
       try {
-        isInitializing.current = true
-        console.log('[ExerciseLibrary] Loading exercises for user:', userProfile.id)
+        console.log('[ExerciseLibrary] Loading exercises, tab:', activeTab)
         setIsLoading(true)
 
-        const data = await getAllAvailableExercises(userProfile.id)
+        const data = activeTab === 'my'
+          ? await getUserExercises(userProfile.id)
+          : await getPublicExercises()
+
         setExercises(data)
         setFilteredExercises(data)
 
         console.log('[ExerciseLibrary] Loaded', data.length, 'exercises')
-
-        hasInitialized.current = true
-        isInitializing.current = false
       } catch (error) {
         console.error('[ExerciseLibrary] Failed to load exercises:', error)
-        isInitializing.current = false
       } finally {
         setIsLoading(false)
       }
     }
 
     loadExercises()
-  }, [userProfile])
+  }, [userProfile, activeTab])
 
   // Filter exercises
   useEffect(() => {
@@ -128,7 +123,31 @@ export function ExercisesAll() {
             >
               <ArrowLeft className="w-6 h-6" />
             </button>
-            <h1 className="text-2xl font-bold flex-1">All Exercises</h1>
+            <h1 className="text-2xl font-bold flex-1">Exercise Library</h1>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setActiveTab('my')}
+              className={`flex-1 py-2 px-4 rounded-xl font-semibold transition ${
+                activeTab === 'my'
+                  ? 'bg-white text-primary-purple-600'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              My Library
+            </button>
+            <button
+              onClick={() => setActiveTab('community')}
+              className={`flex-1 py-2 px-4 rounded-xl font-semibold transition ${
+                activeTab === 'community'
+                  ? 'bg-white text-primary-purple-600'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              Community Library
+            </button>
           </div>
 
           {/* Search Bar */}
@@ -346,6 +365,9 @@ export function ExercisesAll() {
           </div>
         )}
       </div>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation active="library" />
     </div>
   )
 }
