@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Dumbbell, Filter, X, ArrowLeft, Edit, Trash2, Globe, Lock } from 'lucide-react'
+import { Search, Dumbbell, Filter, X, ArrowLeft, Edit, Trash2, Globe, Lock, Plus } from 'lucide-react'
 import { BottomNavigation } from '@/components/layout/BottomNavigation'
 import { useAuthStore } from '@/stores/authStore'
 import { getUserExercises, getPublicExercises } from '@/lib/database'
@@ -265,6 +265,15 @@ export function ExercisesAll() {
           <p className="text-gray-600">
             {isLoading ? 'Loading...' : `${filteredExercises.length} exercise${filteredExercises.length !== 1 ? 's' : ''}`}
           </p>
+          {activeTab === 'my' && (
+            <button
+              onClick={() => navigate('/exercise/create')}
+              className="px-4 py-2 bg-gradient-primary text-white font-semibold rounded-xl hover:opacity-90 transition flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Create
+            </button>
+          )}
         </div>
 
         {/* Loading State */}
