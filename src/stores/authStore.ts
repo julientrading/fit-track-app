@@ -138,15 +138,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   // Refresh session when tab becomes visible
   refreshSession: async () => {
-    const { authUser } = get()
-    if (!authUser) {
-      console.log('[AuthStore] No user to refresh session for')
-      return
-    }
-
     try {
       console.log('[AuthStore] Refreshing session and user data...')
-      // Re-fetch current user to ensure session is still valid
+      // ALWAYS check Supabase session storage, don't rely on in-memory state
+      // This handles cases where browser suspended the tab and cleared memory
       const currentUser = await getCurrentUser()
 
       if (currentUser) {
