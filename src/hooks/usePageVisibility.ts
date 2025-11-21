@@ -18,32 +18,29 @@ export function usePageVisibility(onVisible?: () => void, onHidden?: () => void)
   }, [onVisible, onHidden])
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+
     const handleVisibilityChange = () => {
       const visible = !document.hidden
       setIsVisible(visible)
 
       if (visible && onVisibleRef.current) {
-        onVisibleRef.current()
+        // Debounce to prevent multiple rapid calls
+        clearTimeout(timeoutId)
+        timeoutId = setTimeout(() => {
+          onVisibleRef.current?.()
+        }, 100)
       } else if (!visible && onHiddenRef.current) {
         onHiddenRef.current()
       }
     }
 
-    const handleFocus = () => {
-      if (!document.hidden && onVisibleRef.current) {
-        onVisibleRef.current()
-      }
-    }
-
-    // Set up visibility change listener
+    // Only use visibilitychange - remove focus listener to avoid duplicates
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
-    // Also listen for focus events as a fallback
-    window.addEventListener('focus', handleFocus)
-
     return () => {
+      clearTimeout(timeoutId)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', handleFocus)
     }
   }, []) // Empty deps - callbacks accessed via refs
 
