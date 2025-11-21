@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 /**
  * Custom hook to detect when the browser tab becomes visible/hidden
@@ -7,38 +7,50 @@ import { useEffect, useState, useCallback } from 'react'
 export function usePageVisibility(onVisible?: () => void, onHidden?: () => void) {
   const [isVisible, setIsVisible] = useState(!document.hidden)
 
-  const handleVisibilityChange = useCallback(() => {
-    const visible = !document.hidden
+  // Use refs to store callbacks to avoid recreating event listeners
+  const onVisibleRef = useRef(onVisible)
+  const onHiddenRef = useRef(onHidden)
 
-    console.log('[usePageVisibility] Tab visibility changed:', visible ? 'visible' : 'hidden')
-    setIsVisible(visible)
-
-    if (visible && onVisible) {
-      console.log('[usePageVisibility] Triggering onVisible callback')
-      onVisible()
-    } else if (!visible && onHidden) {
-      console.log('[usePageVisibility] Triggering onHidden callback')
-      onHidden()
-    }
+  // Update refs when callbacks change
+  useEffect(() => {
+    onVisibleRef.current = onVisible
+    onHiddenRef.current = onHidden
   }, [onVisible, onHidden])
 
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      const visible = !document.hidden
+
+      console.log('[usePageVisibility] Tab visibility changed:', visible ? 'visible' : 'hidden')
+      setIsVisible(visible)
+
+      if (visible && onVisibleRef.current) {
+        console.log('[usePageVisibility] Triggering onVisible callback')
+        onVisibleRef.current()
+      } else if (!visible && onHiddenRef.current) {
+        console.log('[usePageVisibility] Triggering onHidden callback')
+        onHiddenRef.current()
+      }
+    }
+
+    const handleFocus = () => {
+      if (!document.hidden && onVisibleRef.current) {
+        console.log('[usePageVisibility] Window focused, triggering onVisible')
+        onVisibleRef.current()
+      }
+    }
+
     // Set up visibility change listener
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
     // Also listen for focus events as a fallback
-    window.addEventListener('focus', () => {
-      if (document.hidden === false && onVisible) {
-        console.log('[usePageVisibility] Window focused, triggering onVisible')
-        onVisible()
-      }
-    })
+    window.addEventListener('focus', handleFocus)
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
     }
-  }, [handleVisibilityChange, onVisible])
+  }, []) // Empty deps - callbacks accessed via refs
 
   return isVisible
 }
