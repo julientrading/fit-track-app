@@ -14,6 +14,8 @@ function App() {
   useEffect(() => {
     console.log('>>>>>> APP USEEFFECT RUNNING <<<<<<')
     initialize()
+    // Show alert to PROVE new code is loading
+    alert('NEW CODE IS LOADED! Version 06:30')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
