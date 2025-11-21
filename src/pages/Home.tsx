@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DashboardHeader } from '@/components/layout/DashboardHeader'
 import { BottomNavigation } from '@/components/layout/BottomNavigation'
@@ -7,6 +7,7 @@ import { QuickStats } from '@/components/features/workout/QuickStats'
 import { RecentActivity } from '@/components/features/workout/RecentActivity'
 import { LatestAchievement } from '@/components/features/workout/LatestAchievement'
 import { useAuthStore } from '@/stores/authStore'
+import { usePageVisibility } from '@/hooks/usePageVisibility'
 import {
   getActiveProgram,
   getWorkoutDaysByProgram,
@@ -29,7 +30,6 @@ export const Home = () => {
 
   // Ref to prevent double loading in React Strict Mode
   const isInitializing = useRef(false)
-  const hasInitialized = useRef(false)
 
   const [isLoading, setIsLoading] = useState(true)
   const [_activeProgram, setActiveProgram] = useState<any>(null)
@@ -38,78 +38,82 @@ export const Home = () => {
   const [recentWorkouts, setRecentWorkouts] = useState<any[]>([])
   const [_personalRecords, setPersonalRecords] = useState<any[]>([])
 
-  useEffect(() => {
+  const loadDashboardData = useCallback(async () => {
     if (!userProfile) {
       console.log('[Home] No user profile, waiting...')
       setIsLoading(false)
       return
     }
 
-    const loadDashboardData = async () => {
-      // Guard against double loading (React Strict Mode)
-      if (isInitializing.current || hasInitialized.current) {
-        console.log('[Home] Dashboard already loading or loaded, skipping...')
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        isInitializing.current = true
-        console.log('[Home] Loading dashboard data for user:', userProfile.id)
-        setIsLoading(true)
-
-        // Fetch all dashboard data in parallel
-        const [program, stats, workouts, prs] = await Promise.all([
-          getActiveProgram(userProfile.id),
-          getWeeklyStats(userProfile.id),
-          getRecentWorkouts(userProfile.id, 5),
-          getUserPRs(userProfile.id),
-        ])
-
-        console.log('[Home] Dashboard data loaded:', { program, stats, workouts: workouts.length, prs: prs.length })
-
-        setActiveProgram(program)
-        setWeeklyStats(stats)
-        setRecentWorkouts(workouts)
-        setPersonalRecords(prs)
-
-        // If user has an active program, fetch the next workout day
-        if (program) {
-          const workoutDays = await getWorkoutDaysByProgram(program.id)
-          if (workoutDays.length > 0) {
-            // Get the first workout day (in a real app, we'd track which day is next)
-            const nextDay = workoutDays[0]
-            const exercises = await getWorkoutDayExercises(nextDay.id)
-
-            setNextWorkout({
-              workoutDayId: nextDay.id,
-              name: nextDay.name,
-              estimatedDuration: exercises.length * 15, // Rough estimate: 15 min per exercise
-              currentDay: nextDay.day_number,
-              totalDays: workoutDays.length,
-              allExercises: exercises.map((ex: any) => ({
-                name: ex.exercise.name,
-                sets: ex.sets.length,
-                reps: ex.sets[0]?.targetReps || 10,
-              })),
-            })
-          }
-        }
-
-        // Mark as initialized
-        hasInitialized.current = true
-        isInitializing.current = false
-      } catch (error) {
-        console.error('[Home] Failed to load dashboard data:', error)
-        isInitializing.current = false
-      } finally {
-        console.log('[Home] Setting isLoading to false')
-        setIsLoading(false)
-      }
+    // Guard against double loading
+    if (isInitializing.current) {
+      console.log('[Home] Dashboard already loading, skipping...')
+      return
     }
 
-    loadDashboardData()
+    try {
+      isInitializing.current = true
+      console.log('[Home] Loading dashboard data for user:', userProfile.id)
+      setIsLoading(true)
+
+      // Fetch all dashboard data in parallel
+      const [program, stats, workouts, prs] = await Promise.all([
+        getActiveProgram(userProfile.id),
+        getWeeklyStats(userProfile.id),
+        getRecentWorkouts(userProfile.id, 5),
+        getUserPRs(userProfile.id),
+      ])
+
+      console.log('[Home] Dashboard data loaded:', { program, stats, workouts: workouts.length, prs: prs.length })
+
+      setActiveProgram(program)
+      setWeeklyStats(stats)
+      setRecentWorkouts(workouts)
+      setPersonalRecords(prs)
+
+      // If user has an active program, fetch the next workout day
+      if (program) {
+        const workoutDays = await getWorkoutDaysByProgram(program.id)
+        if (workoutDays.length > 0) {
+          // Get the first workout day (in a real app, we'd track which day is next)
+          const nextDay = workoutDays[0]
+          const exercises = await getWorkoutDayExercises(nextDay.id)
+
+          setNextWorkout({
+            workoutDayId: nextDay.id,
+            name: nextDay.name,
+            estimatedDuration: exercises.length * 15, // Rough estimate: 15 min per exercise
+            currentDay: nextDay.day_number,
+            totalDays: workoutDays.length,
+            allExercises: exercises.map((ex: any) => ({
+              name: ex.exercise.name,
+              sets: ex.sets.length,
+              reps: ex.sets[0]?.targetReps || 10,
+            })),
+          })
+        }
+      }
+
+      isInitializing.current = false
+    } catch (error) {
+      console.error('[Home] Failed to load dashboard data:', error)
+      isInitializing.current = false
+    } finally {
+      console.log('[Home] Setting isLoading to false')
+      setIsLoading(false)
+    }
   }, [userProfile])
+
+  // Load data on mount and when user profile changes
+  useEffect(() => {
+    loadDashboardData()
+  }, [loadDashboardData])
+
+  // Reload data when tab becomes visible (fixes content not loading after app switch)
+  usePageVisibility(() => {
+    console.log('[Home] Tab became visible, reloading dashboard data...')
+    loadDashboardData()
+  })
 
   const handleStartWorkout = () => {
     if (nextWorkout) {

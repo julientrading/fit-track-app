@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   TrendingUp,
@@ -24,6 +24,7 @@ import {
 } from 'recharts'
 import { BottomNavigation } from '@/components/layout/BottomNavigation'
 import { useAuthStore } from '@/stores/authStore'
+import { usePageVisibility } from '@/hooks/usePageVisibility'
 import {
   getUserPrograms,
   getWorkoutLogsByProgram,
@@ -43,7 +44,6 @@ export function Progress() {
 
   // Refs for React Strict Mode
   const isInitializing = useRef(false)
-  const hasInitialized = useRef(false)
 
   // State
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('30d')
@@ -59,57 +59,61 @@ export function Progress() {
   const [showExerciseDropdown, setShowExerciseDropdown] = useState(false)
 
   // Load initial data
-  useEffect(() => {
+  const loadInitialData = useCallback(async () => {
     if (!userProfile) {
       setIsLoading(false)
       return
     }
 
-    const loadInitialData = async () => {
-      // Guard against double loading
-      if (isInitializing.current || hasInitialized.current) {
-        console.log('[Progress] Already loading or loaded, skipping...')
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        isInitializing.current = true
-        console.log('[Progress] Loading initial data for user:', userProfile.id)
-        setIsLoading(true)
-
-        const [programsData, prData, exercisesData] = await Promise.all([
-          getUserPrograms(userProfile.id),
-          getUserPRs(userProfile.id),
-          getAllAvailableExercises(userProfile.id),
-        ])
-
-        setPrograms(programsData)
-        setPrs(prData)
-        setExercises(exercisesData)
-
-        // Auto-select active program
-        const activeProgram = programsData.find((p) => p.is_active)
-        if (activeProgram) {
-          setSelectedProgram(activeProgram.id)
-        } else if (programsData.length > 0) {
-          setSelectedProgram(programsData[0].id)
-        }
-
-        console.log('[Progress] Loaded', programsData.length, 'programs and', prData.length, 'PRs')
-
-        hasInitialized.current = true
-        isInitializing.current = false
-      } catch (error) {
-        console.error('[Progress] Failed to load initial data:', error)
-        isInitializing.current = false
-      } finally {
-        setIsLoading(false)
-      }
+    // Guard against double loading
+    if (isInitializing.current) {
+      console.log('[Progress] Already loading, skipping...')
+      return
     }
 
-    loadInitialData()
+    try {
+      isInitializing.current = true
+      console.log('[Progress] Loading initial data for user:', userProfile.id)
+      setIsLoading(true)
+
+      const [programsData, prData, exercisesData] = await Promise.all([
+        getUserPrograms(userProfile.id),
+        getUserPRs(userProfile.id),
+        getAllAvailableExercises(userProfile.id),
+      ])
+
+      setPrograms(programsData)
+      setPrs(prData)
+      setExercises(exercisesData)
+
+      // Auto-select active program
+      const activeProgram = programsData.find((p) => p.is_active)
+      if (activeProgram) {
+        setSelectedProgram(activeProgram.id)
+      } else if (programsData.length > 0) {
+        setSelectedProgram(programsData[0].id)
+      }
+
+      console.log('[Progress] Loaded', programsData.length, 'programs and', prData.length, 'PRs')
+
+      isInitializing.current = false
+    } catch (error) {
+      console.error('[Progress] Failed to load initial data:', error)
+      isInitializing.current = false
+    } finally {
+      setIsLoading(false)
+    }
   }, [userProfile])
+
+  useEffect(() => {
+    loadInitialData()
+  }, [loadInitialData])
+
+  // Reload data when tab becomes visible
+  usePageVisibility(() => {
+    console.log('[Progress] Tab became visible, reloading data...')
+    loadInitialData()
+  })
 
   // Load program-specific data when program changes
   useEffect(() => {

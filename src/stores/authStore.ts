@@ -19,6 +19,7 @@ interface AuthState {
   login: (data: LoginData) => Promise<void>
   logout: () => Promise<void>
   refreshProfile: () => Promise<void>
+  refreshSession: () => Promise<void>
   clearError: () => void
 }
 
@@ -132,6 +133,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ userProfile })
     } catch (error) {
       console.error('Failed to refresh profile:', error)
+    }
+  },
+
+  // Refresh session when tab becomes visible
+  refreshSession: async () => {
+    const { authUser } = get()
+    if (!authUser) {
+      console.log('[AuthStore] No user to refresh session for')
+      return
+    }
+
+    try {
+      console.log('[AuthStore] Refreshing session and user data...')
+      // Re-fetch current user to ensure session is still valid
+      const currentUser = await getCurrentUser()
+
+      if (currentUser) {
+        // Refresh user profile data
+        const userProfile = await getUserProfile(currentUser.id)
+        console.log('[AuthStore] Session refreshed successfully')
+        set({ authUser: currentUser, userProfile })
+      } else {
+        // Session expired, log out
+        console.log('[AuthStore] Session expired, logging out')
+        set({ authUser: null, userProfile: null })
+      }
+    } catch (error) {
+      console.error('[AuthStore] Failed to refresh session:', error)
     }
   },
 
