@@ -24,7 +24,6 @@ import {
 } from 'recharts'
 import { BottomNavigation } from '@/components/layout/BottomNavigation'
 import { useAuthStore } from '@/stores/authStore'
-import { usePageVisibility } from '@/hooks/usePageVisibility'
 import {
   getUserPrograms,
   getWorkoutLogsByProgram,
@@ -108,12 +107,6 @@ export function Progress() {
   useEffect(() => {
     loadInitialData()
   }, [loadInitialData])
-
-  // Reload data when tab becomes visible
-  usePageVisibility(() => {
-    console.log('[Progress] Tab became visible, reloading data...')
-    loadInitialData()
-  })
 
   // Load program-specific data when program changes
   useEffect(() => {
