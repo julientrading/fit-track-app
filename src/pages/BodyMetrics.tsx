@@ -75,11 +75,14 @@ export function BodyMetrics() {
       return
     }
 
+    // Reset flags when component mounts/remounts
+    hasInitialized.current = false
+    isInitializing.current = false
+
     const loadMeasurements = async () => {
-      // Guard against double loading
-      if (isInitializing.current || hasInitialized.current) {
-        console.log('[BodyMetrics] Already loading or loaded, skipping...')
-        setIsLoading(false)
+      // Guard against double loading (React Strict Mode)
+      if (isInitializing.current) {
+        console.log('[BodyMetrics] Already loading, skipping...')
         return
       }
 

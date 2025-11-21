@@ -960,8 +960,9 @@ export async function getFrequentlyUsedExercises(userId: string, limit = 10): Pr
 
 export async function createExercise(exerciseData: {
   name: string
-  category: 'compound' | 'isolation' | 'cardio' | 'flexibility' | 'other'
+  category: 'compound' | 'isolation' | 'cardio' | 'flexibility' | 'mobility' | 'warmup' | 'other'
   muscle_groups: string[]
+  muscle_targets?: string[]
   equipment?: string[]
   difficulty?: 'beginner' | 'intermediate' | 'advanced'
   description?: string
@@ -972,15 +973,18 @@ export async function createExercise(exerciseData: {
   tracks_reps?: boolean
   tracks_time?: boolean
   tracks_distance?: boolean
+  custom_metrics?: any[]
 }): Promise<Exercise> {
   console.log('[DB] Creating exercise with data:', exerciseData)
 
-  const { data, error } = await supabase
-    .from('exercises')
-    .insert({
+  try {
+    console.log('[DB] About to call Supabase insert...')
+
+    const insertData = {
       name: exerciseData.name,
       category: exerciseData.category,
       muscle_groups: exerciseData.muscle_groups,
+      muscle_targets: exerciseData.muscle_targets || null,
       equipment: exerciseData.equipment || [],
       difficulty: exerciseData.difficulty || null,
       description: exerciseData.description || null,
@@ -991,25 +995,39 @@ export async function createExercise(exerciseData: {
       tracks_reps: exerciseData.tracks_reps ?? true,
       tracks_time: exerciseData.tracks_time ?? false,
       tracks_distance: exerciseData.tracks_distance ?? false,
-    })
-    .select()
-    .single()
+      custom_metrics: exerciseData.custom_metrics || null,
+    }
 
-  if (error) {
-    console.error('[DB] Failed to create exercise:', error)
-    throw new Error(`Failed to create exercise: ${error.message}`)
+    console.log('[DB] Insert data prepared:', insertData)
+
+    const { data, error } = await supabase
+      .from('exercises')
+      .insert(insertData)
+      .select()
+      .single()
+
+    console.log('[DB] Supabase response received:', { data, error })
+
+    if (error) {
+      console.error('[DB] Failed to create exercise:', error)
+      throw new Error(`Failed to create exercise: ${error.message}`)
+    }
+
+    console.log('[DB] Exercise created successfully:', data)
+    return data as Exercise
+  } catch (err) {
+    console.error('[DB] Exception in createExercise:', err)
+    throw err
   }
-
-  console.log('[DB] Exercise created successfully:', data)
-  return data as Exercise
 }
 
 export async function updateExercise(
   exerciseId: string,
   updates: Partial<{
     name: string
-    category: 'compound' | 'isolation' | 'cardio' | 'flexibility' | 'other'
+    category: 'compound' | 'isolation' | 'cardio' | 'flexibility' | 'mobility' | 'warmup' | 'other'
     muscle_groups: string[]
+    muscle_targets: string[] | null
     equipment: string[]
     difficulty: 'beginner' | 'intermediate' | 'advanced' | null
     description: string | null
@@ -1019,6 +1037,7 @@ export async function updateExercise(
     tracks_reps: boolean
     tracks_time: boolean
     tracks_distance: boolean
+    custom_metrics: any[] | null
     video_url: string | null
   }>
 ): Promise<Exercise> {

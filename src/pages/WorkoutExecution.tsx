@@ -67,10 +67,14 @@ export const WorkoutExecution = () => {
   useEffect(() => {
     if (!id || !authUser) return
 
+    // Reset flags when component mounts/remounts
+    hasInitialized.current = false
+    isInitializing.current = false
+
     const loadWorkoutData = async () => {
       // Guard against double initialization (React Strict Mode)
-      if (isInitializing.current || hasInitialized.current) {
-        console.log('🚫 Workout already initializing or initialized, skipping...')
+      if (isInitializing.current) {
+        console.log('🚫 Workout already initializing, skipping...')
         return
       }
 

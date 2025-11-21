@@ -11,16 +11,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    storageKey: 'fit-track-auth',
   },
   db: {
     schema: 'public'
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'fit-track-app',
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    }
   }
 })

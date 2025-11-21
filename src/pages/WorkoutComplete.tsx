@@ -47,10 +47,14 @@ export function WorkoutComplete() {
   useEffect(() => {
     if (!id) return
 
+    // Reset flags when component mounts/remounts
+    hasInitialized.current = false
+    isInitializing.current = false
+
     const loadWorkoutData = async () => {
       // Guard against double loading (React Strict Mode)
-      if (isInitializing.current || hasInitialized.current) {
-        console.log('🚫 Workout completion already loading or loaded, skipping...')
+      if (isInitializing.current) {
+        console.log('🚫 Workout completion already loading, skipping...')
         return
       }
 

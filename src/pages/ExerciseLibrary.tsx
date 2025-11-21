@@ -49,11 +49,14 @@ export function ExerciseLibrary() {
       return
     }
 
+    // Reset flags when component mounts/remounts
+    hasInitialized.current = false
+    isInitializing.current = false
+
     const loadExercises = async () => {
-      // Guard against double loading
-      if (isInitializing.current || hasInitialized.current) {
-        console.log('[ExerciseLibrary] Already loading or loaded, skipping...')
-        setIsLoading(false)
+      // Guard against double loading (React Strict Mode)
+      if (isInitializing.current) {
+        console.log('[ExerciseLibrary] Already loading, skipping...')
         return
       }
 

@@ -60,11 +60,14 @@ export function Community() {
       return
     }
 
+    // Reset flags when component mounts/remounts
+    hasInitialized.current = false
+    isInitializing.current = false
+
     const loadCommunityData = async () => {
-      // Guard against double loading
-      if (isInitializing.current || hasInitialized.current) {
-        console.log('[Community] Already loading or loaded, skipping...')
-        setIsLoading(false)
+      // Guard against double loading (React Strict Mode)
+      if (isInitializing.current) {
+        console.log('[Community] Already loading, skipping...')
         return
       }
 

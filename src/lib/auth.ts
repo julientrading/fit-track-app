@@ -62,7 +62,7 @@ export async function login({ email, password }: LoginData) {
         email,
         password,
       }),
-      10000 // 10 second timeout for login
+      30000 // 30 second timeout for login (increased for debugging)
     )
 
     if (error) {
@@ -111,7 +111,7 @@ export async function getCurrentUser() {
     // Add timeout to prevent infinite hanging
     const { data: { session } } = await withTimeout(
       supabase.auth.getSession(),
-      5000 // 5 second timeout
+      30000 // 30 second timeout (increased for debugging)
     )
 
     if (!session) {

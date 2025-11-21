@@ -20,13 +20,22 @@ export interface User {
   updated_at: string
 }
 
+export interface CustomMetric {
+  id: string
+  name: string
+  unit: string
+  type: 'number' | 'decimal' | 'duration' | 'text'
+  tracking_level: 'per_set' | 'per_exercise'
+}
+
 export interface Exercise {
   id: string
   name: string
   description: string | null
   instructions: string | null
-  category: 'compound' | 'isolation' | 'cardio' | 'flexibility' | 'other'
+  category: 'compound' | 'isolation' | 'cardio' | 'flexibility' | 'mobility' | 'warmup' | 'other'
   muscle_groups: string[]
+  muscle_targets: string[] | null
   equipment: string[]
   difficulty: 'beginner' | 'intermediate' | 'advanced' | null
   video_url: string | null
@@ -35,6 +44,7 @@ export interface Exercise {
   tracks_reps: boolean
   tracks_time: boolean
   tracks_distance: boolean
+  custom_metrics: CustomMetric[] | null
   created_by: string | null
   is_public: boolean
   created_at: string
@@ -134,6 +144,7 @@ export interface Set {
   rpe: number | null // 0-10
   completed: boolean
   is_personal_record: boolean
+  custom_values: Record<string, string | number> | null
   notes: string | null
   created_at: string
   updated_at: string

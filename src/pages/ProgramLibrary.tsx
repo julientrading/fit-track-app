@@ -63,11 +63,14 @@ export function ProgramLibrary() {
       return
     }
 
+    // Reset flags when component mounts/remounts
+    hasInitialized.current = false
+    isInitializing.current = false
+
     const loadPrograms = async () => {
-      // Guard against double loading
-      if (isInitializing.current || hasInitialized.current) {
-        console.log('[ProgramLibrary] Already loading or loaded, skipping...')
-        setIsLoading(false)
+      // Guard against double loading (React Strict Mode)
+      if (isInitializing.current) {
+        console.log('[ProgramLibrary] Already loading, skipping...')
         return
       }
 

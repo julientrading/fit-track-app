@@ -45,11 +45,14 @@ export const Home = () => {
       return
     }
 
+    // Reset flags when component mounts/remounts
+    hasInitialized.current = false
+    isInitializing.current = false
+
     const loadDashboardData = async () => {
       // Guard against double loading (React Strict Mode)
-      if (isInitializing.current || hasInitialized.current) {
-        console.log('[Home] Dashboard already loading or loaded, skipping...')
-        setIsLoading(false)
+      if (isInitializing.current) {
+        console.log('[Home] Already loading, skipping...')
         return
       }
 
