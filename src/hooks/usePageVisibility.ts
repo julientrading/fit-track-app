@@ -18,26 +18,19 @@ export function usePageVisibility(onVisible?: () => void, onHidden?: () => void)
   }, [onVisible, onHidden])
 
   useEffect(() => {
-    console.log('[usePageVisibility] Setting up visibility listeners')
-
     const handleVisibilityChange = () => {
       const visible = !document.hidden
-
-      console.log('[usePageVisibility] Tab visibility changed:', visible ? 'visible' : 'hidden')
       setIsVisible(visible)
 
       if (visible && onVisibleRef.current) {
-        console.log('[usePageVisibility] Triggering onVisible callback')
         onVisibleRef.current()
       } else if (!visible && onHiddenRef.current) {
-        console.log('[usePageVisibility] Triggering onHidden callback')
         onHiddenRef.current()
       }
     }
 
     const handleFocus = () => {
       if (!document.hidden && onVisibleRef.current) {
-        console.log('[usePageVisibility] Window focused, triggering onVisible')
         onVisibleRef.current()
       }
     }
